@@ -84,7 +84,7 @@ Args:
 
 Active Search Output Canvas:
 
-![Active Search](/Resources/Turtle%20Graphics%20Active%20Search%20Output.jpg)
+![Active Search](/HW1%20-%20Turtles/Resources/Turtle%20Graphics%20Active%20Search%20Output.jpg)
 
 Click the Video below to see the simulation:
 
@@ -96,10 +96,10 @@ Click the Video below to see the simulation:
 
 Inactive Search Output Canvas:
 
-![Inactive Seach](/Resources/Turtle%20Graphics%20InActive%20Search%20Output.png)
+![Inactive Seach](/HW1%20-%20Turtles/Resources/Turtle%20Graphics%20InActive%20Search%20Output.png)
 
 Click the Video below to see the simulation:
 
 <a href="https://youtube.com/shorts/1GMheKd6lk0?feature=share">
-    <img src="/Resources/Turtle Graphics InActive Search Output.png"/>
+    <img src="/HW1 - Turtles/Resources/Turtle Graphics InActive Search Output.png"/>
 </a>
