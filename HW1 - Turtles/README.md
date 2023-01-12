@@ -80,26 +80,19 @@ Args:
 - `active_search (bool)`: True -> Active Search, False -> Pattern Building
 
 ### Results
-**Active Search**
 
-Active Search Output Canvas:
-
-![Active Search](/HW1%20-%20Turtles/Resources/Turtle%20Graphics%20Active%20Search%20Output.jpg)
-
-Click the Video below to see the simulation:
-
+**Active Search**\
+Active Search Output Canvas:\
+![Active Search](/HW1%20-%20Turtles/Resources/Turtle%20Graphics%20Active%20Search%20Output.jpg)\
+Click the Video below to see the simulation:\
 <a href="https://youtube.com/shorts/naEB1eCU-QM">
     <img src="/HW1 - Turtles/Resources/Turtle Graphics Active Search Output.jpg"/>
 </a>
 
-**Inactive Search**
-
-Inactive Search Output Canvas:
-
-![Inactive Seach](/HW1%20-%20Turtles/Resources/Turtle%20Graphics%20InActive%20Search%20Output.png)
-
-Click the Video below to see the simulation:
-
+**Inactive Search**\
+Inactive Search Output Canvas:\
+![Inactive Seach](/HW1%20-%20Turtles/Resources/Turtle%20Graphics%20InActive%20Search%20Output.png)\
+Click the Video below to see the simulation:\
 <a href="https://youtube.com/shorts/1GMheKd6lk0?feature=share">
     <img src="/HW1 - Turtles/Resources/Turtle Graphics InActive Search Output.png"/>
 </a>
