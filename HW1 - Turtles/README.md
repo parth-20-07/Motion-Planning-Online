@@ -88,8 +88,8 @@ Active Search Output Canvas:
 
 Click the Video below to see the simulation:
 
-<a href="https://youtu.be/YMkNGjWqdNs">
-    <img src="/Resources/Turtle Graphics Active Search Output.jpg"/>
+<a href="https://youtube.com/shorts/naEB1eCU-QM">
+    <img src="/HW1 - Turtles/Resources/Turtle Graphics Active Search Output.jpg"/>
 </a>
 
 **Inactive Search**
@@ -100,6 +100,6 @@ Inactive Search Output Canvas:
 
 Click the Video below to see the simulation:
 
-<a href="https://youtu.be/IDjrJrgobuM">
+<a href="https://youtube.com/shorts/1GMheKd6lk0?feature=share">
     <img src="/Resources/Turtle Graphics InActive Search Output.png"/>
 </a>

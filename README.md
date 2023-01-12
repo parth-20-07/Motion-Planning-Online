@@ -4,7 +4,7 @@
 
 - [Introduction](#introduction)
 - [How to run the Assignments](#how-to-run-the-assignments)
-- [Task 0: Setup Basic Tools](#task-0-setup-basic-tools)
+    - [Task 0: Setup Basic Tools](#task-0-setup-basic-tools)
     - [Assignment 1: Setup Environment](#assignment-1-setup-environment)
 - [Design Details](#design-details)
 - [License](#license)
@@ -19,7 +19,7 @@ Each Assignment shown here has a detailed explaination in its own directory. Ple
 
 # How to run the Assignments
 
-# Task 0: Setup Basic Tools
+## Task 0: Setup Basic Tools
 Click the [Link](/Docs/) to see the complete guide on how to setup the essential tools for the project.
 
 ## Assignment 1: Setup Environment
