@@ -26,7 +26,7 @@ Each Assignment shown here has a detailed explaination in its own directory. Ple
 Click the [Link](/Docs/) to see the complete guide on how to setup the essential tools for the project.
 
 ## Assignment 1: Setup Environment
-The aim of the [Assignment 1](/HW1%20-%20Turtles/) is to setup the environement and try a basic run through programming.
+The aim of the [Assignment 1](/HW0%20-%20Turtles/) is to setup the environement and try a basic run through programming.
 
 # Design Details
 - Designed for:

@@ -28,7 +28,7 @@ The aim of the assignment is to setup the environment (guide to [setup](../Docs/
 ## Requirements
 To encourage the setup of a working Python environment, create a pattern using turtle graphics. Python has a built-in turtle graphics module. To make things more interesting, our dimwittedturtle has lost his friend, and needs to execute a *Victor Sierra* search pattern, shown below
 
-![Victor Sierra Search Pattern](/Resources/Turtle%20Graphics%20Requirement.png)
+![Victor Sierra Search Pattern](/HW0%20-%20Turtles/Resources/Turtle%20Graphics%20Requirement.png)
 
 ## Code
 
@@ -94,13 +94,13 @@ Args:
 **Active Search:**\
 Click the Video below to see the simulation:\
 <a href="https://youtube.com/shorts/naEB1eCU-QM">
-    <img src="/HW1 - Turtles/Resources/Turtle Graphics Active Search Output.jpg"/>
+    <img src="/HW0 - Turtles/Resources/Turtle Graphics Active Search Output.jpg"/>
 </a>
 
 **Inactive Search:**\
 Click the Video below to see the simulation:\
 <a href="https://youtube.com/shorts/1GMheKd6lk0?feature=share">
-    <img src="/HW1 - Turtles/Resources/Turtle Graphics InActive Search Output.png"/>
+    <img src="/HW0 - Turtles/Resources/Turtle Graphics InActive Search Output.png"/>
 </a>
 
 # ROS Installation
