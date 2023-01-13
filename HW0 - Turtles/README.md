@@ -17,6 +17,10 @@
         - [How to Run the code](#how-to-run-the-code)
         - [Code Basics](#code-basics)
         - [Results](#results)
+- [Motion Planning Introduction](#motion-planning-introduction)
+    - [Essay](#essay)
+    - [Citation](#citation)
+    - [Submission](#submission)
 
 <!-- /TOC -->
 
@@ -299,3 +303,32 @@ Function to execute sequence of statements to place the block on the window.
 
 - **70% Coverage**:
     ![70 coverage](/HW0%20-%20Turtles/Obsctacle%20Field/Coverage%2070%20percent.png)
+
+# Motion Planning Introduction
+Find an interesting application of motion planning, and create a short report. Format may be written, slide presentation, video, or other. Cite references, and give clear examples. What do you find interesting about this method? What kind of problem does it solve? What familiar applications is it used in?
+
+Be brief, consider this an elevator pitch to the rest of the class. Post your application summary, along with a short introduction about yourself, to the course discussion board.
+
+## Essay
+
+The reference paper shows the work done by University of Pennsylvania to generate aggressive controllers for agile and quick maneuver in compact spaces. They have done tremendous work in developing and tuning the controllers super accurately. (*Though super lovely work there but we shall not be talking about it here.*)
+
+The other aspect covered by the paper is Trajectory Generation via Sequential Composition. Sequential composition combines planning and control by computing a sequence of controllers to execute rather than a single trajectory, offering greater safety guarantees.
+
+- Phase 1: Hover control (stiff) to a desired position
+- Phase 2: 3D path following toward a desired position, $r_{L}$, and yaw angle, $\psi_{G}$
+- Phase 3: Altitude control to desired pitch angle, $\theta_{G}$ , yaw angle, $\psi_{G}$, and zero roll
+- Phase 4: Altitude control to zero pitch angle, yaw angle, $\psi_{G}$, and zero roll
+- Phase 5: Hover control (soft) to a desired position.
+
+This type of change in trajectories considering the motion type can help into smoother motions which consider the dynamics and the motion capabilities of the Robot.
+
+## Citation
+
+Citation: [Mellinger D, Michael N, Kumar V. Trajectory generation and control for precise aggressive maneuvers with quadrotors. The International Journal of Robotics Research. 2012;31(5):664-674. doi:10.1177/0278364911434236](https://journals.sagepub.com/doi/abs/10.1177/0278364911434236)
+
+Aggressive Maneuvers for Autonomous Quadrotor Flight: [Reference Video](https://youtu.be/MvRTALJp8DM)
+
+## Submission
+
+![Screenshot](/HW0%20-%20Turtles/Resources/Discussion.png)
