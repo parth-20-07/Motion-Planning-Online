@@ -4,8 +4,8 @@
 
 - [Introduction](#introduction)
 - [How to run the Assignments](#how-to-run-the-assignments)
-    - [Task 0: Setup Basic Tools](#task-0-setup-basic-tools)
-    - [Assignment 1: Setup Environment](#assignment-1-setup-environment)
+  - [Task 0: Setup Basic Tools](#task-0-setup-basic-tools)
+  - [Assignment 1: Setup Environment](#assignment-1-setup-environment)
 - [Design Details](#design-details)
 - [License](#license)
 
@@ -18,17 +18,22 @@ The aim of the course is to learn about Motion Planning and Path Planning.
 Each Assignment shown here has a detailed explaination in its own directory. Please refer the individual directories for in-depth explaination of how the code works.
 
 ⚠*Warning: The complete system and assignments are built on Ubuntu 20.04 and not tested on other systems.*
+
+
 🗒*Note: But if you understand the codes enough and are smart enough, it will be super simple to port it on the system that you like. I understand coding enough to build all these things but still am not too expert to build cross-platform products yet!*
 
 # How to run the Assignments
 
 ## Task 0: Setup Basic Tools
+
 Click the [Link](/Docs/) to see the complete guide on how to setup the essential tools for the project.
 
 ## Assignment 1: Setup Environment
+
 The aim of the [Assignment 1](/HW0%20-%20Turtles/) is to setup the environement and try a basic run through programming.
 
 # Design Details
+
 - Designed for:
   - Worcester Polytechnic Institute
   - RBE 550-S23-S01: Motion Planning

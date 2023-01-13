@@ -109,6 +109,44 @@ We need to install [ROS Noetic](https://wiki.ros.org/noetic). The complete insta
 
 ## ROS Demonstration with TurtleSim
 
+Open a new terminal and initialize roscore using:
+
+```shell
+roscore
+```
+
+Open a new terminal and run the following code to initate the turtlesim:
+
+```shell
+rosrun turtlesim turtlesim_node
+```
+
+Initiate the script to read the keyboard keys to control the turtle using:
+
+```shell
+rosrun turtlesim turtle_teleop_key
+```
+
+Use your arrow keys to move the robot around.
+
+![TurtleSim](/HW0%20-%20Turtles/Resources/TurtleSim.png)
+
+Get the list of all active topics in a new terminal using the command
+
+```shell
+rostopic list
+```
+
+Echo the `turtle1/pose1` topic using:
+
+```shell
+rostopic echo /turtle1/pose
+```
+
+The Terminal will update with the latest position and velocity values.
+
+![TurtleSim Terminal](/HW0%20-%20Turtles/Resources/TurtleSim%20Terminal.png)
+
 # Create an Obstacle Field
 Subsequent assignments will rely on planning within two dimensional *grid world* type environments. Using any tools or programming languages, create a random obstacle field in a 128×128 grid, using tetrominoes as depicted in Figure.
 
