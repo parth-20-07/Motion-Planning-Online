@@ -4,10 +4,11 @@
 
 - [Introduction](#introduction)
 - [How to run the Assignments](#how-to-run-the-assignments)
-  - [Task 0: Setup Basic Tools](#task-0-setup-basic-tools)
-  - [Assignment 1: Setup Environment](#assignment-1-setup-environment)
+    - [Task 0: Setup Basic Tools](#task-0-setup-basic-tools)
+    - [Assignment 1: Setup Environment](#assignment-1-setup-environment)
 - [Design Details](#design-details)
 - [License](#license)
+- [Update Logs](#update-logs)
 
 <!-- /TOC -->
 
@@ -30,7 +31,7 @@ Click the [Link](/Docs/) to see the complete guide on how to setup the essential
 
 ## Assignment 1: Setup Environment
 
-The aim of the [Assignment 1](/HW0%20-%20Turtles/) is to setup the environement and try a basic run through programming.
+The aim of the [Assignment 1](/HW0%20-%20Turtles/) is to setup the environement and try a basic run through programming. Here we try to develop a rudimentary and random obstacle field, tryout turtle sim in python and initiate a *Victor Sierra* Search pattern to find lost objects.
 
 # Design Details
 
@@ -53,3 +54,7 @@ You may obtain a copy of the License at
 _https://www.gnu.org/licenses/gpl-3.0.en.html_
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+
+# Update Logs
+
+All the major updates in the repository can be found in [Update Logs.md](/Docs/Update%20Logs.md).
