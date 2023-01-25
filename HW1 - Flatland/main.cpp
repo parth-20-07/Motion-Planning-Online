@@ -2,12 +2,15 @@
 #include <iostream>
 #include <stdint.h>
 #include <array>
+#include <vector>
 #include <cmath>
 #include <SFML/Graphics.hpp>
 
 #define GRID_WIDTH 128
 #define GRID_HEIGHT 128
 std::uint8_t grid_array[GRID_WIDTH][GRID_HEIGHT]; // Grid to store info
+std::uint8_t entry_point[2] = {1, 1};
+std::uint8_t exit_point[2] = {GRID_WIDTH, GRID_HEIGHT};
 
 class Setup_Grid
 {
@@ -38,6 +41,14 @@ public:
 
         while (calculate_coverage() < target_coverage_pixels)
             update_grid_array(get_block_type(), get_block_placement_position());
+
+        grid_array[entry_point[0] - 1][entry_point[1] - 1] = 0;
+        grid_array[exit_point[0] - 1][exit_point[1] - 1] = 0;
+
+        std::cout
+            << "Start Point: " << std::to_string(entry_point[0]) << "," << std::to_string(entry_point[1]) << std::endl;
+        std::cout << "End Point: " << std::to_string(exit_point[0]) << "," << std::to_string(exit_point[1]) << std::endl;
+
         std::cout << "Grid Initialization Complete" << std::endl;
         return vizualize_grid(show_grid_lines, show_setup_animation);
     }
@@ -218,13 +229,13 @@ int main(int argc, char *argv[])
     sf::RenderWindow *layout = new_grid->initialize_grid(false, true);
 
     sf::CircleShape bot(sf::CircleShape(5.f, 30));
-    sf::Vector2f bot_pos = sf::Vector2f(0.f, 0.f);
+    sf::Vector2f bot_pos = sf::Vector2f((entry_point[0] - 1) * 10.f, (entry_point[1] - 1) * 10.f);
     bot.setPosition(bot_pos);
     bot.setFillColor(sf::Color::Green);
     layout->draw(bot);
 
     sf::RectangleShape end_point(sf::Vector2f(10.f, 10.f));
-    sf::Vector2f ep_pos = sf::Vector2f((GRID_WIDTH - 1) * 10, (GRID_HEIGHT - 1) * 10);
+    sf::Vector2f ep_pos = sf::Vector2f((exit_point[0] - 1) * 10.f, (exit_point[1] - 1) * 10.f);
     end_point.setPosition(ep_pos);
     end_point.setFillColor(sf::Color::Red);
     layout->draw(end_point);
