@@ -14,9 +14,11 @@
 #include <string>
 #include <array>
 #include <vector>
+#include <list>
 #include <cmath>
 #include <SFML/Graphics.hpp>
 #include <queue>
+#include <time.h>
 
 #define GRID_WIDTH 128
 #define GRID_HEIGHT 128
@@ -25,10 +27,10 @@
 #define BLOCK_EMPTY 0
 #define BLOCK_OBSTACLE 1
 #define BLOCK_VISITED 2
-#define FINAL_PATH 3
 
 #define BFS_SEARCH "bfs"
 #define DFS_SEARCH "dfs"
+#define DIJKSTRA_SEARCH "dij"
 
 std::uint8_t grid_array[GRID_WIDTH][GRID_HEIGHT];                   // Grid to store info
 std::array<std::uint8_t, 2> entry_point = {1, 1};                   // y,x
@@ -70,13 +72,13 @@ public:
         grid_array[exit_point[0]][exit_point[1]] = BLOCK_EMPTY;
     }
 
-    sf::RenderWindow *vizualize_grid(bool show_grid_lines, bool show_setup_animation)
+    sf::RenderWindow *vizualize_grid(bool show_grid_lines, bool show_setup_animation, std::string window_name)
     {
         // sf::RenderWindow *window = new sf::RenderWindow(sf::VideoMode(1920, 1080), "Obstacle Field"); // Each Pixel is considered 10 px wide for better visuals
-        sf::RenderWindow *window = new sf::RenderWindow(sf::VideoMode(GRID_WIDTH * PIXEL_WIDTH, GRID_HEIGHT * PIXEL_WIDTH), "Obstacle Field"); // Each Pixel is considered PIXEL_WIDTH px wide for better visuals
-        window->setVerticalSyncEnabled(true);                                                                                                  // Enabling VSync for FrameRate Control.
-        window->setFramerateLimit(30);                                                                                                         // Set 60FPS Max
-        window->clear(sf::Color::White);                                                                                                       // Set BG Color
+        sf::RenderWindow *window = new sf::RenderWindow(sf::VideoMode(GRID_WIDTH * PIXEL_WIDTH, GRID_HEIGHT * PIXEL_WIDTH), window_name); // Each Pixel is considered PIXEL_WIDTH px wide for better visuals
+        window->setVerticalSyncEnabled(true);                                                                                             // Enabling VSync for FrameRate Control.
+        window->setFramerateLimit(30);                                                                                                    // Set 60FPS Max
+        window->clear(sf::Color::White);                                                                                                  // Set BG Color
 
         if (show_grid_lines)
             draw_grid_lines(window);
@@ -145,14 +147,14 @@ public:
         }
     }
 
-    sf::RenderWindow *clear_grid(bool show_grid_lines, bool show_setup_animation)
+    sf::RenderWindow *clear_grid(bool show_grid_lines, bool show_setup_animation, std::string window_name)
     {
         for (size_t y = 0; y < GRID_HEIGHT; y++)
             for (size_t x = 0; x < GRID_WIDTH; x++)
-                if (grid_array[y][x] != BLOCK_OBSTACLE)
+                if (grid_array[y][x] == BLOCK_VISITED)
                     grid_array[y][x] = BLOCK_EMPTY;
 
-        return vizualize_grid(show_grid_lines, show_setup_animation);
+        return vizualize_grid(show_grid_lines, show_setup_animation, window_name);
     }
 
 private:
@@ -270,30 +272,15 @@ class StartSearch
 private:
     std::string search_type;
 
-    bool is_left_empty(std::uint8_t x, std::uint8_t y)
-    {
-        if (x == 0)
-            return false;
-        if (grid_array[y][x - 1] == BLOCK_EMPTY)
-            return true;
-        return false;
-    }
-
     bool is_right_empty(std::uint8_t x, std::uint8_t y)
     {
         if (x == GRID_WIDTH - 1)
             return false;
         if (grid_array[y][x + 1] == BLOCK_EMPTY)
+        {
+            grid_array[y][x + 1] = BLOCK_VISITED;
             return true;
-        return false;
-    }
-
-    bool is_up_empty(std::uint8_t x, std::uint8_t y)
-    {
-        if (y == 0)
-            return false;
-        if (grid_array[y - 1][x] == BLOCK_EMPTY)
-            return true;
+        }
         return false;
     }
 
@@ -302,30 +289,60 @@ private:
         if (y == GRID_HEIGHT - 1)
             return false;
         if (grid_array[y + 1][x] == BLOCK_EMPTY)
+        {
+            grid_array[y + 1][x] = BLOCK_VISITED;
             return true;
+        }
         return false;
     }
 
-    void bfs_search(sf::RenderWindow *window, std::array<std::uint8_t, 2> &start_pos, std::array<std::uint8_t, 2> &end_pos, bool show_search_animation, bool quick_solve)
+    bool is_left_empty(std::uint8_t x, std::uint8_t y)
     {
-        std::queue<std::uint8_t> x_que, y_que;
-        std::queue<std::string> move_que;
-        move_que.push("");
+        if (x == 0)
+            return false;
+        if (grid_array[y][x - 1] == BLOCK_EMPTY)
+        {
+            grid_array[y][x - 1] = BLOCK_VISITED;
+            return true;
+        }
+        return false;
+    }
 
-        y_que.push(start_pos[0]);
-        x_que.push(start_pos[1]);
+    bool is_up_empty(std::uint8_t x, std::uint8_t y)
+    {
+        if (y == 0)
+            return false;
+        if (grid_array[y - 1][x] == BLOCK_EMPTY)
+        {
+            grid_array[y - 1][x] = BLOCK_VISITED;
+            return true;
+        }
+        return false;
+    }
 
-        std::uint8_t x = x_que.front();
-        std::uint8_t y = y_que.front();
-        grid_array[y][x] = BLOCK_VISITED;
+    void dfs_search(sf::RenderWindow *window, std::array<std::uint8_t, 2> &start_pos, std::array<std::uint8_t, 2> &end_pos, bool show_search_animation)
+    {
+        std::vector<std::uint8_t> x_stack, y_stack;
+        std::vector<std::string> move_stack;
+        bool path_found = false;
+
+        y_stack.push_back(start_pos[0]);
+        x_stack.push_back(start_pos[1]);
+        move_stack.push_back("");
+
+        grid_array[start_pos[0]][start_pos[1]] = BLOCK_VISITED;
 
         sf::RectangleShape mapping_marker(sf::Vector2f(PIXEL_WIDTH, PIXEL_WIDTH));
 
-        while (true && (!x_que.empty()))
+        while (!x_stack.empty())
         {
-            x = x_que.front();
-            y = y_que.front();
-            std::string path = move_que.front();
+            std::uint8_t x = x_stack.back();
+            std::uint8_t y = y_stack.back();
+            std::string path = move_stack.back();
+
+            x_stack.pop_back();
+            y_stack.pop_back();
+            move_stack.pop_back();
 
             sf::Vector2f mapped_pos = sf::Vector2f(x * PIXEL_WIDTH, y * PIXEL_WIDTH);
             mapping_marker.setPosition(mapped_pos);
@@ -335,74 +352,129 @@ private:
                 window->display(); // Update display every iteration
 
             if ((y == end_pos[0]) && (x == end_pos[1]))
+            {
+                path_found = true;
+                move_stack.push_back(path);
                 break;
+            }
 
-            grid_array[y][x] = BLOCK_VISITED;
+            if (is_up_empty(x, y))
+            {
+                x_stack.push_back(x);
+                y_stack.push_back(y - 1);
+                move_stack.push_back(path + 'U');
+            }
+            if (is_left_empty(x, y))
+            {
+                x_stack.push_back(x - 1);
+                y_stack.push_back(y);
+                move_stack.push_back(path + 'L');
+            }
             if (is_down_empty(x, y))
             {
-                x_que.push(x);
-                y_que.push(y + 1);
-                if (quick_solve)
-                    grid_array[y + 1][x] = BLOCK_VISITED;
-                std::string possible_path = path + 'D';
-                move_que.push(possible_path);
+                x_stack.push_back(x);
+                y_stack.push_back(y + 1);
+                move_stack.push_back(path + 'D');
             }
+            if (is_right_empty(x, y))
+            {
+                x_stack.push_back(x + 1);
+                y_stack.push_back(y);
+                move_stack.push_back(path + 'R');
+            }
+        }
+
+        if (path_found)
+        {
+            std::cout << "Search Complete: " << move_stack.back() << std::endl;
+            std::cout << "Path Length: " << std::to_string(move_stack.back().length()) << "\n";
+            display_path(window, start_pos, end_pos, move_stack.back());
+        }
+        else
+            std::cout << "Search Failed!" << std::endl;
+        return;
+    }
+
+    void bfs_search(sf::RenderWindow *window, std::array<std::uint8_t, 2> &start_pos, std::array<std::uint8_t, 2> &end_pos, bool show_search_animation)
+    {
+        std::queue<std::uint8_t> x_que, y_que;
+        std::queue<std::string> move_que;
+        bool path_found = false;
+
+        y_que.push(start_pos[0]);
+        x_que.push(start_pos[1]);
+        move_que.push("");
+
+        grid_array[start_pos[0]][start_pos[1]] = BLOCK_VISITED;
+
+        sf::RectangleShape mapping_marker(sf::Vector2f(PIXEL_WIDTH, PIXEL_WIDTH));
+
+        while (true && (!x_que.empty()))
+        {
+            std::uint8_t x = x_que.front();
+            std::uint8_t y = y_que.front();
+            std::string path = move_que.front();
+
+            x_que.pop();
+            y_que.pop();
+            move_que.pop();
+
+            sf::Vector2f mapped_pos = sf::Vector2f(x * PIXEL_WIDTH, y * PIXEL_WIDTH);
+            mapping_marker.setPosition(mapped_pos);
+            mapping_marker.setFillColor(sf::Color::Yellow);
+            window->draw(mapping_marker);
+            if (show_search_animation)
+                window->display(); // Update display every iteration
+
+            if ((y == end_pos[0]) && (x == end_pos[1]))
+            {
+                path_found = true;
+                move_que.push(path);
+                break;
+            }
+
             if (is_right_empty(x, y))
             {
                 x_que.push(x + 1);
                 y_que.push(y);
-                if (quick_solve)
-                    grid_array[y][x + 1] = BLOCK_VISITED;
-                std::string possible_path = path + 'R';
-                move_que.push(possible_path);
+                move_que.push(path + 'R');
             }
-            if (is_up_empty(x, y))
+            if (is_down_empty(x, y))
             {
                 x_que.push(x);
-                y_que.push(y - 1);
-                if (quick_solve)
-                    grid_array[y - 1][x] = BLOCK_VISITED;
-                std::string possible_path = path + 'U';
-                move_que.push(possible_path);
+                y_que.push(y + 1);
+                move_que.push(path + 'D');
             }
             if (is_left_empty(x, y))
             {
                 x_que.push(x - 1);
                 y_que.push(y);
-                if (quick_solve)
-                    grid_array[y][x - 1] = BLOCK_VISITED;
-                std::string possible_path = path + 'L';
-                move_que.push(possible_path);
+                move_que.push(path + 'L');
             }
-            move_que.pop();
-            x_que.pop();
-            y_que.pop();
-
-            // for (size_t y = 0; y < GRID_HEIGHT; y++)
-            // {
-            //     for (size_t x = 0; x < GRID_WIDTH; x++)
-            //         std::cout << std::to_string(grid_array[y][x]) << "\t";
-            //     std::cout << "\n";
-            // }
-            // std::cout << "\n\n\n\n";
+            if (is_up_empty(x, y))
+            {
+                x_que.push(x);
+                y_que.push(y - 1);
+                move_que.push(path + 'U');
+            }
         }
 
-        while (move_que.front().length() < (GRID_WIDTH + GRID_HEIGHT - 3))
-            move_que.pop();
-
-        if (move_que.front().length() > 0)
+        if (path_found)
         {
-            std::cout << "Search Complete: " << move_que.front() << std::endl;
-            display_path(window, start_pos, end_pos, move_que.front());
+            std::cout << "Search Complete: " << move_que.back() << std::endl;
+            display_path(window, start_pos, end_pos, move_que.back());
         }
         else
             std::cout << "Search Failed!" << std::endl;
+        return;
     }
 
     void display_path(sf::RenderWindow *window, std::array<std::uint8_t, 2> &start_pos, std::array<std::uint8_t, 2> &end_pos, std::string path)
     {
+        std::cout << "Path Length: " << std::to_string(path.length()) << "\n";
         std::uint8_t y = start_pos[0];
         std::uint8_t x = start_pos[1];
+
         sf::RectangleShape mapping_marker(sf::Vector2f(PIXEL_WIDTH, PIXEL_WIDTH));
         sf::Vector2f mapped_pos = sf::Vector2f(x * PIXEL_WIDTH, y * PIXEL_WIDTH);
         mapping_marker.setPosition(mapped_pos);
@@ -416,20 +488,20 @@ private:
         bot.setFillColor(sf::Color::Green);
         window->draw(bot);
 
-        for (std::uint8_t pos = 0; pos < path.length(); pos++)
+        mapping_marker.setFillColor(sf::Color::Blue);
+
+        for (std::uint16_t pos = 0; pos < path.length(); pos++)
         {
             if (path[pos] == 'D')
-                y++;
+                y = y + 1;
             else if (path[pos] == 'R')
-                x++;
+                x = x + 1;
             else if (path[pos] == 'U')
-                y--;
+                y = y - 1;
             else if (path[pos] == 'L')
-                x--;
-            grid_array[y][x] == FINAL_PATH;
+                x = x - 1;
             sf::Vector2f mapped_pos = sf::Vector2f(x * PIXEL_WIDTH, y * PIXEL_WIDTH);
             mapping_marker.setPosition(mapped_pos);
-            mapping_marker.setFillColor(sf::Color::Blue);
             window->draw(mapping_marker);
             window->display(); // Update display every iteration
         }
@@ -460,18 +532,24 @@ public:
      * @param show_search_animation
      * @param quick_solve
      */
-    void initiate_search(std::string search_type, sf::RenderWindow *window, std::array<std::uint8_t, 2> &start_pos, std::array<std::uint8_t, 2> &end_pos, bool show_search_animation, bool quick_solve)
+    void initiate_search(std::string search_type, sf::RenderWindow *window, std::array<std::uint8_t, 2> &start_pos, std::array<std::uint8_t, 2> &end_pos, bool show_search_animation)
     {
         if (search_type == BFS_SEARCH)
         {
             this->search_type = BFS_SEARCH;
-            bfs_search(window, start_pos, end_pos, show_search_animation, quick_solve);
+            bfs_search(window, start_pos, end_pos, show_search_animation);
+        }
+        else if (search_type == DFS_SEARCH)
+        {
+            this->search_type = DFS_SEARCH;
+            dfs_search(window, start_pos, end_pos, show_search_animation);
         }
     }
 };
 
 int main(int argc, char *argv[])
 {
+    std::srand(std::time(0));
     // Take User Input for Coverage
     std::cout << "Enter The Area Coverage Percentage: ";
     int coverage_percentage;
@@ -484,17 +562,18 @@ int main(int argc, char *argv[])
 
     // Setup Grid
     Setup_Grid *grid = new Setup_Grid(GRID_WIDTH, GRID_HEIGHT, coverage_percentage);
-    StartSearch *plan_path = new StartSearch;
-
     grid->initialize_grid();
 
+    // Initialize Path Planner
+    StartSearch *plan_path = new StartSearch;
+
     // Breadth-First Search
-    sf::RenderWindow *search1 = grid->vizualize_grid(false, false);
-    plan_path->initiate_search(BFS_SEARCH, search1, entry_point, exit_point, false, true);
+    sf::RenderWindow *search1 = grid->clear_grid(false, false, "BFS Search");
+    plan_path->initiate_search(BFS_SEARCH, search1, entry_point, exit_point, false);
 
     // Depth-First Search
-    sf::RenderWindow *search2 = grid->clear_grid(false, false);
-    plan_path->initiate_search(DFS_SEARCH, search2, entry_point, exit_point, false, true);
+    sf::RenderWindow *search2 = grid->clear_grid(false, false, "DFS Search");
+    plan_path->initiate_search(DFS_SEARCH, search2, entry_point, exit_point, true);
 
     while (search1->isOpen())
     {
