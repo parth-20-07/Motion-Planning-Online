@@ -28,9 +28,9 @@
 #define BLOCK_OBSTACLE 1
 #define BLOCK_VISITED 2
 
-#define BFS_SEARCH "bfs"
-#define DFS_SEARCH "dfs"
-#define DIJKSTRA_SEARCH "dij"
+#define BFS_SEARCH "BFS Search"
+#define DFS_SEARCH "DFS Search"
+#define DIJKSTRA_SEARCH "Dijkstra Search"
 
 std::uint8_t grid_array[GRID_WIDTH][GRID_HEIGHT];                   // Grid to store info
 std::array<std::uint8_t, 2> entry_point = {1, 1};                   // y,x
@@ -271,6 +271,16 @@ class StartSearch
 {
 private:
     std::string search_type;
+    sf::RenderWindow *window;
+    std::vector<std::vector<std::uint8_t>> position_list;
+    std::array<std::uint8_t, 2> start_pos, end_pos;
+    std::uint16_t cell_count;
+
+    /* -------------------------------------------------------------------------- */
+    /*                             AUXILARY FUNCTIONS                             */
+    /* -------------------------------------------------------------------------- */
+
+    /* ---------------------------- NEIGHBOUR SEARCH ---------------------------- */
 
     bool is_right_empty(std::uint8_t x, std::uint8_t y)
     {
@@ -320,8 +330,222 @@ private:
         return false;
     }
 
-    void dfs_search(sf::RenderWindow *window, std::array<std::uint8_t, 2> &start_pos, std::array<std::uint8_t, 2> &end_pos, bool show_search_animation)
+    bool is_up_left_empty(std::uint8_t x, std::uint8_t y)
     {
+        if (y == 0 or x == 0)
+            return false;
+        if (grid_array[y - 1][x - 1] == BLOCK_EMPTY)
+        {
+            grid_array[y - 1][x - 1] == BLOCK_VISITED;
+            return true;
+        }
+        return false;
+    }
+
+    bool is_up_right_empty(std::uint8_t x, std::uint8_t y)
+    {
+        if (y == 0 or x == GRID_WIDTH - 1)
+            return false;
+        if (grid_array[y - 1][x + 1] == BLOCK_EMPTY)
+        {
+            grid_array[y - 1][x + 1] == BLOCK_VISITED;
+            return true;
+        }
+        return false;
+    }
+
+    bool is_down_left_empty(std::uint8_t x, std::uint8_t y)
+    {
+        if (y == GRID_HEIGHT - 1 or x == 0)
+            return false;
+        if (grid_array[y + 1][x - 1] == BLOCK_EMPTY)
+        {
+            grid_array[y + 1][x - 1] == BLOCK_VISITED;
+            return true;
+        }
+        return false;
+    }
+
+    bool is_down_right_empty(std::uint8_t x, std::uint8_t y)
+    {
+        if (y == GRID_HEIGHT - 1 or x == GRID_WIDTH - 1)
+            return false;
+        if (grid_array[y + 1][x + 1] == BLOCK_EMPTY)
+        {
+            grid_array[y + 1][x + 1] == BLOCK_VISITED;
+            return true;
+        }
+        return false;
+    }
+
+    /* ------------------------- PATH PLOTTING FUNCTION ------------------------- */
+
+    void itemize_path(std::string path)
+    {
+        std::uint8_t y = start_pos[0];
+        std::uint8_t x = start_pos[1];
+
+        std::vector<std::uint8_t> position;
+        position.push_back(y);
+        position.push_back(x);
+        position_list.push_back(position);
+
+        for (std::uint16_t pos = 0; pos < path.length(); pos++)
+        {
+            if (path[pos] == 'D')
+                y = y + 1;
+            else if (path[pos] == 'R')
+                x = x + 1;
+            else if (path[pos] == 'U')
+                y = y - 1;
+            else if (path[pos] == 'L')
+                x = x - 1;
+            std::vector<std::uint8_t> position;
+            position.push_back(y);
+            position.push_back(x);
+            position_list.push_back(position);
+        }
+        this->cell_count = position_list.size();
+        display_path();
+        return;
+    }
+
+    void display_path(void)
+    {
+        std::vector<std::uint8_t> cell = position_list[0];
+        std::uint8_t y = cell[0];
+        std::uint8_t x = cell[1];
+
+        sf::RectangleShape mapping_marker(sf::Vector2f(PIXEL_WIDTH, PIXEL_WIDTH));
+        mapping_marker.setFillColor(sf::Color::Blue);
+
+        for (std::uint16_t pos = 0; pos < cell_count; pos++)
+        {
+            y = position_list[pos][0];
+            x = position_list[pos][1];
+            sf::Vector2f mapped_pos = sf::Vector2f(x * PIXEL_WIDTH, y * PIXEL_WIDTH);
+            mapping_marker.setPosition(mapped_pos);
+            window->draw(mapping_marker);
+            window->display(); // Update display every iteration
+        }
+
+        sf::CircleShape bot(sf::CircleShape(PIXEL_WIDTH / 2, 30));
+        sf::Vector2f bot_pos = sf::Vector2f((entry_point[1]) * PIXEL_WIDTH, (entry_point[0]) * PIXEL_WIDTH);
+        bot.setPosition(bot_pos);
+        bot.setFillColor(sf::Color::Green);
+        window->draw(bot);
+
+        sf::RectangleShape end_point(sf::Vector2f(PIXEL_WIDTH, PIXEL_WIDTH));
+        sf::Vector2f ep_pos = sf::Vector2f((exit_point[1]) * PIXEL_WIDTH, (exit_point[0]) * PIXEL_WIDTH);
+        end_point.setPosition(ep_pos);
+        end_point.setFillColor(sf::Color::Red);
+        window->draw(end_point);
+        window->display(); // Update display every iteration
+
+        std::string file_name = "Images/" + this->search_type + ".png";
+        sf::Texture texture;
+        texture.create(window->getSize().x, window->getSize().y);
+        texture.update(*window);
+        if (texture.copyToImage().saveToFile(file_name))
+            std::cout << "Screenshot Saved as " << file_name << std::endl;
+    }
+
+    /* -------------------------------------------------------------------------- */
+    /*                           PATH PLANNING FUNCTIONS                          */
+    /* -------------------------------------------------------------------------- */
+
+    /* ------------------------- BREADTH - FIRST SEARCH ------------------------- */
+
+    void
+    bfs_search(sf::RenderWindow *display_window, bool show_search_animation)
+    {
+        this->window = display_window;
+        std::queue<std::uint8_t> x_que, y_que;
+        std::queue<std::string> move_que;
+        bool path_found = false;
+
+        y_que.push(start_pos[0]);
+        x_que.push(start_pos[1]);
+        move_que.push("");
+
+        grid_array[start_pos[0]][start_pos[1]] = BLOCK_VISITED;
+
+        sf::RectangleShape mapping_marker(sf::Vector2f(PIXEL_WIDTH, PIXEL_WIDTH));
+
+        uint8_t iterations = 0;
+
+        while (true && (!x_que.empty()))
+        {
+            std::uint8_t x = x_que.front();
+            std::uint8_t y = y_que.front();
+            std::string path = move_que.front();
+
+            x_que.pop();
+            y_que.pop();
+            move_que.pop();
+
+            sf::Vector2f mapped_pos = sf::Vector2f(x * PIXEL_WIDTH, y * PIXEL_WIDTH);
+            mapping_marker.setPosition(mapped_pos);
+            mapping_marker.setFillColor(sf::Color::Yellow);
+            window->draw(mapping_marker);
+
+            if (show_search_animation)
+                if (iterations == UINT8_MAX)
+                {
+                    window->display(); // Update display every iteration
+                    iterations = 0;
+                }
+                else
+                    iterations++;
+
+            if ((y == end_pos[0]) && (x == end_pos[1]))
+            {
+                path_found = true;
+                move_que.push(path);
+                break;
+            }
+
+            if (is_right_empty(x, y))
+            {
+                x_que.push(x + 1);
+                y_que.push(y);
+                move_que.push(path + 'R');
+            }
+            if (is_down_empty(x, y))
+            {
+                x_que.push(x);
+                y_que.push(y + 1);
+                move_que.push(path + 'D');
+            }
+            if (is_left_empty(x, y))
+            {
+                x_que.push(x - 1);
+                y_que.push(y);
+                move_que.push(path + 'L');
+            }
+            if (is_up_empty(x, y))
+            {
+                x_que.push(x);
+                y_que.push(y - 1);
+                move_que.push(path + 'U');
+            }
+        }
+
+        if (path_found)
+        {
+            std::cout << "Search Complete: " << move_que.back() << std::endl;
+            itemize_path(move_que.back());
+        }
+        else
+            std::cout << "Search Failed!" << std::endl;
+        return;
+    }
+
+    /* -------------------------- DEPTH - FIRST SEARCH -------------------------- */
+
+    void dfs_search(sf::RenderWindow *display_window, bool show_search_animation)
+    {
+        this->window = display_window;
         std::vector<std::uint8_t> x_stack, y_stack;
         std::vector<std::string> move_stack;
         bool path_found = false;
@@ -333,6 +557,7 @@ private:
         grid_array[start_pos[0]][start_pos[1]] = BLOCK_VISITED;
 
         sf::RectangleShape mapping_marker(sf::Vector2f(PIXEL_WIDTH, PIXEL_WIDTH));
+        uint8_t iterations = 0;
 
         while (!x_stack.empty())
         {
@@ -348,8 +573,15 @@ private:
             mapping_marker.setPosition(mapped_pos);
             mapping_marker.setFillColor(sf::Color::Yellow);
             window->draw(mapping_marker);
+
             if (show_search_animation)
-                window->display(); // Update display every iteration
+                if (iterations == UINT8_MAX)
+                {
+                    window->display(); // Update display every iteration
+                    iterations = 0;
+                }
+                else
+                    iterations++;
 
             if ((y == end_pos[0]) && (x == end_pos[1]))
             {
@@ -388,140 +620,236 @@ private:
         {
             std::cout << "Search Complete: " << move_stack.back() << std::endl;
             std::cout << "Path Length: " << std::to_string(move_stack.back().length()) << "\n";
-            display_path(window, start_pos, end_pos, move_stack.back());
+            itemize_path(move_stack.back());
         }
         else
             std::cout << "Search Failed!" << std::endl;
         return;
     }
 
-    void bfs_search(sf::RenderWindow *window, std::array<std::uint8_t, 2> &start_pos, std::array<std::uint8_t, 2> &end_pos, bool show_search_animation)
+    /* ----------------------------- DIJKSTRA SEARCH ---------------------------- */
+
+    void dijkstra_search(sf::RenderWindow *display_windows, bool show_search_animation)
     {
-        std::queue<std::uint8_t> x_que, y_que;
-        std::queue<std::string> move_que;
+        this->window = display_windows;
         bool path_found = false;
 
-        y_que.push(start_pos[0]);
-        x_que.push(start_pos[1]);
-        move_que.push("");
+        std::uint16_t grid_array_data[GRID_WIDTH][GRID_HEIGHT][3]; // Grid to store parent and distance
+        for (size_t y = 0; y < GRID_HEIGHT; y++)
+            for (size_t x = 0; x < GRID_WIDTH; x++)
+                grid_array_data[y][x][2] = UINT16_MAX;
 
-        grid_array[start_pos[0]][start_pos[1]] = BLOCK_VISITED;
+        std::queue<std::uint8_t> x_stack, y_stack;
+        y_stack.push(start_pos[0]);
+        x_stack.push(start_pos[1]);
+
+        grid_array_data[start_pos[0]][start_pos[1]][0] = start_pos[0];
+        grid_array_data[start_pos[0]][start_pos[1]][1] = start_pos[1];
+        grid_array_data[start_pos[0]][start_pos[1]][2] = 0;
 
         sf::RectangleShape mapping_marker(sf::Vector2f(PIXEL_WIDTH, PIXEL_WIDTH));
+        std::uint8_t iterations = 0;
 
-        while (true && (!x_que.empty()))
+        while (!x_stack.empty())
         {
-            std::uint8_t x = x_que.front();
-            std::uint8_t y = y_que.front();
-            std::string path = move_que.front();
+            std::uint8_t x = x_stack.front();
+            std::uint8_t y = y_stack.front();
+            std::uint16_t distance = grid_array_data[y][x][2];
+            grid_array[y][x] = BLOCK_VISITED;
 
-            x_que.pop();
-            y_que.pop();
-            move_que.pop();
+            x_stack.pop();
+            y_stack.pop();
 
             sf::Vector2f mapped_pos = sf::Vector2f(x * PIXEL_WIDTH, y * PIXEL_WIDTH);
             mapping_marker.setPosition(mapped_pos);
             mapping_marker.setFillColor(sf::Color::Yellow);
             window->draw(mapping_marker);
             if (show_search_animation)
-                window->display(); // Update display every iteration
+                if (iterations == UINT8_MAX)
+                {
+                    window->display(); // Update display every iteration
+                    iterations = 0;
+                }
+                else
+                    iterations++;
 
             if ((y == end_pos[0]) && (x == end_pos[1]))
             {
                 path_found = true;
-                move_que.push(path);
                 break;
             }
 
-            if (is_right_empty(x, y))
-            {
-                x_que.push(x + 1);
-                y_que.push(y);
-                move_que.push(path + 'R');
-            }
             if (is_down_empty(x, y))
             {
-                x_que.push(x);
-                y_que.push(y + 1);
-                move_que.push(path + 'D');
+                std::uint8_t ny, nx;
+                ny = y + 1;
+                nx = x;
+                x_stack.push(nx);
+                y_stack.push(ny);
+                if (grid_array_data[ny][nx][2] > distance)
+                {
+                    grid_array_data[ny][nx][0] = y;
+                    grid_array_data[ny][nx][1] = x;
+                    grid_array_data[ny][nx][2] = distance + 1;
+                }
+            }
+            if (is_down_left_empty(x, y))
+            {
+                std::uint8_t ny, nx;
+                ny = y + 1;
+                nx = x - 1;
+                x_stack.push(nx);
+                y_stack.push(ny);
+                if (grid_array_data[ny][nx][2] > distance)
+                {
+                    grid_array_data[ny][nx][0] = y;
+                    grid_array_data[ny][nx][1] = x;
+                    grid_array_data[ny][nx][2] = distance + 1;
+                }
             }
             if (is_left_empty(x, y))
             {
-                x_que.push(x - 1);
-                y_que.push(y);
-                move_que.push(path + 'L');
+                std::uint8_t ny, nx;
+                ny = y;
+                nx = x - 1;
+                x_stack.push(nx);
+                y_stack.push(ny);
+                if (grid_array_data[ny][nx][2] > distance)
+                {
+                    grid_array_data[ny][nx][0] = y;
+                    grid_array_data[ny][nx][1] = x;
+                    grid_array_data[ny][nx][2] = distance + 1;
+                }
+            }
+            if (is_up_left_empty(x, y))
+            {
+                std::uint8_t ny, nx;
+                ny = y - 1;
+                nx = x - 1;
+                x_stack.push(nx);
+                y_stack.push(ny);
+                if (grid_array_data[ny][nx][2] > distance)
+                {
+                    grid_array_data[ny][nx][0] = y;
+                    grid_array_data[ny][nx][1] = x;
+                    grid_array_data[ny][nx][2] = distance + 1;
+                }
             }
             if (is_up_empty(x, y))
             {
-                x_que.push(x);
-                y_que.push(y - 1);
-                move_que.push(path + 'U');
+                std::uint8_t ny, nx;
+                ny = y - 1;
+                nx = x;
+                x_stack.push(nx);
+                y_stack.push(ny);
+                if (grid_array_data[ny][nx][2] > distance)
+                {
+                    grid_array_data[ny][nx][0] = y;
+                    grid_array_data[ny][nx][1] = x;
+                    grid_array_data[ny][nx][2] = distance + 1;
+                }
+            }
+            if (is_up_right_empty(x, y))
+            {
+                std::uint8_t ny, nx;
+                ny = y - 1;
+                nx = x + 1;
+                x_stack.push(nx);
+                y_stack.push(ny);
+                if (grid_array_data[ny][nx][2] > distance)
+                {
+                    grid_array_data[ny][nx][0] = y;
+                    grid_array_data[ny][nx][1] = x;
+                    grid_array_data[ny][nx][2] = distance + 1;
+                }
+            }
+            if (is_right_empty(x, y))
+            {
+                std::uint8_t ny, nx;
+                ny = y;
+                nx = x + 1;
+                x_stack.push(nx);
+                y_stack.push(ny);
+                if (grid_array_data[ny][nx][2] > distance)
+                {
+                    grid_array_data[ny][nx][0] = y;
+                    grid_array_data[ny][nx][1] = x;
+                    grid_array_data[ny][nx][2] = distance + 1;
+                }
+            }
+            if (is_down_right_empty(x, y))
+            {
+                std::uint8_t ny, nx;
+                ny = y + 1;
+                nx = x + 1;
+                x_stack.push(nx);
+                y_stack.push(ny);
+                if (grid_array_data[ny][nx][2] > distance)
+                {
+                    grid_array_data[ny][nx][0] = y;
+                    grid_array_data[ny][nx][1] = x;
+                    grid_array_data[ny][nx][2] = distance + 1;
+                }
             }
         }
 
         if (path_found)
         {
-            std::cout << "Search Complete: " << move_que.back() << std::endl;
-            display_path(window, start_pos, end_pos, move_que.back());
+            std::uint8_t y, x;
+            y = exit_point[0];
+            x = exit_point[1];
+            std::vector<std::uint8_t> pos;
+            pos.push_back(y);
+            pos.push_back(x);
+            position_list.push_back(pos);
+            while (true)
+            {
+                std::uint8_t ny, nx;
+                ny = grid_array_data[y][x][0];
+                nx = grid_array_data[y][x][1];
+                y = ny;
+                x = nx;
+                std::vector<std::uint8_t> pos;
+                pos.push_back(y);
+                pos.push_back(x);
+                position_list.push_back(pos);
+                if ((y == 0) && (x == 0))
+                {
+                    std::vector<std::vector<std::uint8_t>> inverted_list;
+                    while (!position_list.empty())
+                    {
+                        inverted_list.push_back(position_list.back());
+                        position_list.pop_back();
+                    }
+                    position_list.clear();
+                    for (size_t i = 0; i < inverted_list.size(); i++)
+                        position_list.push_back(inverted_list[i]);
+                    inverted_list.clear();
+                    break;
+                }
+            }
+
+            std::cout << "Path Length: " << std::to_string(position_list.size()) << "\n";
+            this->cell_count = position_list.size();
+            display_path();
         }
         else
             std::cout << "Search Failed!" << std::endl;
         return;
     }
 
-    void display_path(sf::RenderWindow *window, std::array<std::uint8_t, 2> &start_pos, std::array<std::uint8_t, 2> &end_pos, std::string path)
+public:
+    /* ------------------------------- CONSTRUCTOR ------------------------------ */
+
+    StartSearch(std::uint8_t start_position_y, std::uint8_t start_position_x, std::uint8_t end_position_y, std::uint8_t end_position_x)
     {
-        std::cout << "Path Length: " << std::to_string(path.length()) << "\n";
-        std::uint8_t y = start_pos[0];
-        std::uint8_t x = start_pos[1];
-
-        sf::RectangleShape mapping_marker(sf::Vector2f(PIXEL_WIDTH, PIXEL_WIDTH));
-        sf::Vector2f mapped_pos = sf::Vector2f(x * PIXEL_WIDTH, y * PIXEL_WIDTH);
-        mapping_marker.setPosition(mapped_pos);
-        mapping_marker.setFillColor(sf::Color::Blue);
-        window->draw(mapping_marker);
-        window->display(); // Update display every iteration
-
-        sf::CircleShape bot(sf::CircleShape(PIXEL_WIDTH / 2, 30));
-        sf::Vector2f bot_pos = sf::Vector2f((entry_point[1]) * PIXEL_WIDTH, (entry_point[0]) * PIXEL_WIDTH);
-        bot.setPosition(bot_pos);
-        bot.setFillColor(sf::Color::Green);
-        window->draw(bot);
-
-        mapping_marker.setFillColor(sf::Color::Blue);
-
-        for (std::uint16_t pos = 0; pos < path.length(); pos++)
-        {
-            if (path[pos] == 'D')
-                y = y + 1;
-            else if (path[pos] == 'R')
-                x = x + 1;
-            else if (path[pos] == 'U')
-                y = y - 1;
-            else if (path[pos] == 'L')
-                x = x - 1;
-            sf::Vector2f mapped_pos = sf::Vector2f(x * PIXEL_WIDTH, y * PIXEL_WIDTH);
-            mapping_marker.setPosition(mapped_pos);
-            window->draw(mapping_marker);
-            window->display(); // Update display every iteration
-        }
-
-        sf::RectangleShape end_point(sf::Vector2f(PIXEL_WIDTH, PIXEL_WIDTH));
-        sf::Vector2f ep_pos = sf::Vector2f((exit_point[1]) * PIXEL_WIDTH, (exit_point[0]) * PIXEL_WIDTH);
-        end_point.setPosition(ep_pos);
-        end_point.setFillColor(sf::Color::Red);
-        window->draw(end_point);
-        window->display(); // Update display every iteration
-
-        std::string file_name = this->search_type + ".png";
-        sf::Texture texture;
-        texture.create(window->getSize().x, window->getSize().y);
-        texture.update(*window);
-        if (texture.copyToImage().saveToFile(file_name))
-            std::cout << "Screenshot Saved as " << file_name << std::endl;
+        this->start_pos[0] = start_position_y;
+        this->start_pos[1] = start_position_x;
+        this->end_pos[0] = end_position_y;
+        this->end_pos[1] = end_position_x;
     }
 
-public:
+    /* ----------------------------- SEARCH FUNCTION ---------------------------- */
     /**
      * @brief Search the grid
      *
@@ -532,17 +860,24 @@ public:
      * @param show_search_animation
      * @param quick_solve
      */
-    void initiate_search(std::string search_type, sf::RenderWindow *window, std::array<std::uint8_t, 2> &start_pos, std::array<std::uint8_t, 2> &end_pos, bool show_search_animation)
+    void
+    initiate_search(std::string search_type, sf::RenderWindow *window, bool show_search_animation)
     {
+        position_list.clear();
         if (search_type == BFS_SEARCH)
         {
             this->search_type = BFS_SEARCH;
-            bfs_search(window, start_pos, end_pos, show_search_animation);
+            bfs_search(window, show_search_animation);
         }
         else if (search_type == DFS_SEARCH)
         {
             this->search_type = DFS_SEARCH;
-            dfs_search(window, start_pos, end_pos, show_search_animation);
+            dfs_search(window, show_search_animation);
+        }
+        else if (search_type == DIJKSTRA_SEARCH)
+        {
+            this->search_type = DIJKSTRA_SEARCH;
+            dijkstra_search(window, show_search_animation);
         }
     }
 };
@@ -565,15 +900,19 @@ int main(int argc, char *argv[])
     grid->initialize_grid();
 
     // Initialize Path Planner
-    StartSearch *plan_path = new StartSearch;
+    StartSearch *plan_path = new StartSearch(entry_point[0], entry_point[1], exit_point[0], exit_point[1]);
 
     // Breadth-First Search
-    sf::RenderWindow *search1 = grid->clear_grid(false, false, "BFS Search");
-    plan_path->initiate_search(BFS_SEARCH, search1, entry_point, exit_point, false);
+    sf::RenderWindow *search1 = grid->clear_grid(false, false, BFS_SEARCH);
+    plan_path->initiate_search(BFS_SEARCH, search1, true);
 
     // Depth-First Search
-    sf::RenderWindow *search2 = grid->clear_grid(false, false, "DFS Search");
-    plan_path->initiate_search(DFS_SEARCH, search2, entry_point, exit_point, true);
+    sf::RenderWindow *search2 = grid->clear_grid(false, false, DFS_SEARCH);
+    plan_path->initiate_search(DFS_SEARCH, search2, false);
+
+    // Dijkstra Search
+    sf::RenderWindow *search3 = grid->clear_grid(false, false, DIJKSTRA_SEARCH);
+    plan_path->initiate_search(DIJKSTRA_SEARCH, search3, false);
 
     while (search1->isOpen())
     {
