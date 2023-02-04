@@ -15,11 +15,10 @@
 #include <array>
 #include <vector>
 #include <list>
-#include <cmath>
 #include <SFML/Graphics.hpp>
 #include <queue>
-#include <time.h>
 
+// #define GENERATE_GIF
 #define GRID_WIDTH 128
 #define GRID_HEIGHT 128
 #define PIXEL_WIDTH 10
@@ -32,9 +31,16 @@
 #define DFS_SEARCH "DFS Search"
 #define DIJKSTRA_SEARCH "Dijkstra Search"
 
-std::uint8_t grid_array[GRID_WIDTH][GRID_HEIGHT];                   // Grid to store info
-std::array<std::uint8_t, 2> entry_point = {1, 1};                   // y,x
-std::array<std::uint8_t, 2> exit_point = {GRID_HEIGHT, GRID_WIDTH}; // y,x
+std::uint8_t grid_array[GRID_WIDTH][GRID_HEIGHT];   // Grid to store info
+std::array<std::uint8_t, 2> entry_point = {50, 50}; // y,x
+std::array<std::uint8_t, 2> exit_point = {124, 22}; // y,x
+
+#define BG_COLOR sf::Color::White
+#define OBSTACLE_COLOR sf::Color::Black
+#define MAPPING_COLOR sf::Color::Yellow
+#define PLOTTING_COLOR sf::Color::Cyan
+#define START_POINT_COLOR sf::Color::Green
+#define END_POINT_COLOR sf::Color::Red
 
 class Setup_Grid
 {
@@ -78,7 +84,7 @@ public:
         sf::RenderWindow *window = new sf::RenderWindow(sf::VideoMode(GRID_WIDTH * PIXEL_WIDTH, GRID_HEIGHT * PIXEL_WIDTH), window_name); // Each Pixel is considered PIXEL_WIDTH px wide for better visuals
         window->setVerticalSyncEnabled(true);                                                                                             // Enabling VSync for FrameRate Control.
         window->setFramerateLimit(30);                                                                                                    // Set 60FPS Max
-        window->clear(sf::Color::White);                                                                                                  // Set BG Color
+        window->clear(BG_COLOR);                                                                                                          // Set BG Color
 
         if (show_grid_lines)
             draw_grid_lines(window);
@@ -86,17 +92,17 @@ public:
 
         if (window->isOpen())
         {
-            sf::RectangleShape marker(sf::Vector2f(PIXEL_WIDTH, PIXEL_WIDTH));
-            marker.setFillColor(sf::Color::Black);
+            sf::RectangleShape obstacle_marker(sf::Vector2f(PIXEL_WIDTH, PIXEL_WIDTH));
+            obstacle_marker.setFillColor(OBSTACLE_COLOR);
             for (size_t y = 0; y < this->grid_height; y++)
             {
                 for (size_t x = 0; x < this->grid_width; x++)
                 {
                     if (grid_array[y][x] == BLOCK_OBSTACLE)
                     {
-                        sf::Vector2f marker_pos = sf::Vector2f(x * PIXEL_WIDTH, y * PIXEL_WIDTH);
-                        marker.setPosition(marker_pos);
-                        window->draw(marker);
+                        sf::Vector2f obstacle_pos = sf::Vector2f(x * PIXEL_WIDTH, y * PIXEL_WIDTH);
+                        obstacle_marker.setPosition(obstacle_pos);
+                        window->draw(obstacle_marker);
                     }
                 }
                 if (show_setup_animation)
@@ -107,16 +113,16 @@ public:
                 window->display(); // Update display every iteration
         }
 
-        sf::CircleShape bot(sf::CircleShape(PIXEL_WIDTH / 2, 30));
-        sf::Vector2f bot_pos = sf::Vector2f((entry_point[1]) * PIXEL_WIDTH, (entry_point[0]) * PIXEL_WIDTH);
-        bot.setPosition(bot_pos);
-        bot.setFillColor(sf::Color::Green);
-        window->draw(bot);
+        sf::CircleShape start_point_marker(sf::CircleShape(PIXEL_WIDTH / 2, 30));
+        sf::Vector2f start_point_pos = sf::Vector2f((entry_point[1]) * PIXEL_WIDTH, (entry_point[0]) * PIXEL_WIDTH);
+        start_point_marker.setPosition(start_point_pos);
+        start_point_marker.setFillColor(START_POINT_COLOR);
+        window->draw(start_point_marker);
 
         sf::RectangleShape end_point(sf::Vector2f(PIXEL_WIDTH, PIXEL_WIDTH));
         sf::Vector2f ep_pos = sf::Vector2f((exit_point[1]) * PIXEL_WIDTH, (exit_point[0]) * PIXEL_WIDTH);
         end_point.setPosition(ep_pos);
-        end_point.setFillColor(sf::Color::Red);
+        end_point.setFillColor(END_POINT_COLOR);
         window->draw(end_point);
         window->display(); // Update display every iteration
 
@@ -129,8 +135,8 @@ public:
         {
             sf::Vertex line[] =
                 {
-                    sf::Vertex(sf::Vector2f(0, x * PIXEL_WIDTH), sf::Color::Black),
-                    sf::Vertex(sf::Vector2f(GRID_WIDTH * PIXEL_WIDTH, x * PIXEL_WIDTH), sf::Color::Black),
+                    sf::Vertex(sf::Vector2f(0, x * PIXEL_WIDTH), OBSTACLE_COLOR),
+                    sf::Vertex(sf::Vector2f(GRID_WIDTH * PIXEL_WIDTH, x * PIXEL_WIDTH), OBSTACLE_COLOR),
                 };
             window->draw(line, 2, sf::Lines);
         }
@@ -140,8 +146,8 @@ public:
         {
             sf::Vertex line[] =
                 {
-                    sf::Vertex(sf::Vector2f(y * PIXEL_WIDTH, 0), sf::Color::Black),
-                    sf::Vertex(sf::Vector2f(y * PIXEL_WIDTH, GRID_HEIGHT * PIXEL_WIDTH), sf::Color::Black),
+                    sf::Vertex(sf::Vector2f(y * PIXEL_WIDTH, 0), OBSTACLE_COLOR),
+                    sf::Vertex(sf::Vector2f(y * PIXEL_WIDTH, GRID_HEIGHT * PIXEL_WIDTH), OBSTACLE_COLOR),
                 };
             window->draw(line, 2, sf::Lines);
         }
@@ -282,97 +288,105 @@ private:
 
     /* ---------------------------- NEIGHBOUR SEARCH ---------------------------- */
 
-    bool is_right_empty(std::uint8_t x, std::uint8_t y)
+    bool is_right_empty(std::uint8_t x, std::uint8_t y, bool mark_location)
     {
         if (x == GRID_WIDTH - 1)
             return false;
         if (grid_array[y][x + 1] == BLOCK_EMPTY)
         {
-            grid_array[y][x + 1] = BLOCK_VISITED;
+            if (mark_location)
+                grid_array[y][x + 1] = BLOCK_VISITED;
             return true;
         }
         return false;
     }
 
-    bool is_down_empty(std::uint8_t x, std::uint8_t y)
+    bool is_down_empty(std::uint8_t x, std::uint8_t y, bool mark_location)
     {
         if (y == GRID_HEIGHT - 1)
             return false;
         if (grid_array[y + 1][x] == BLOCK_EMPTY)
         {
-            grid_array[y + 1][x] = BLOCK_VISITED;
+            if (mark_location)
+                grid_array[y + 1][x] = BLOCK_VISITED;
             return true;
         }
         return false;
     }
 
-    bool is_left_empty(std::uint8_t x, std::uint8_t y)
+    bool is_left_empty(std::uint8_t x, std::uint8_t y, bool mark_location)
     {
         if (x == 0)
             return false;
         if (grid_array[y][x - 1] == BLOCK_EMPTY)
         {
-            grid_array[y][x - 1] = BLOCK_VISITED;
+            if (mark_location)
+                grid_array[y][x - 1] = BLOCK_VISITED;
             return true;
         }
         return false;
     }
 
-    bool is_up_empty(std::uint8_t x, std::uint8_t y)
+    bool is_up_empty(std::uint8_t x, std::uint8_t y, bool mark_location)
     {
         if (y == 0)
             return false;
         if (grid_array[y - 1][x] == BLOCK_EMPTY)
         {
-            grid_array[y - 1][x] = BLOCK_VISITED;
+            if (mark_location)
+                grid_array[y - 1][x] = BLOCK_VISITED;
             return true;
         }
         return false;
     }
 
-    bool is_up_left_empty(std::uint8_t x, std::uint8_t y)
+    bool is_up_left_empty(std::uint8_t x, std::uint8_t y, bool mark_location)
     {
         if (y == 0 or x == 0)
             return false;
         if (grid_array[y - 1][x - 1] == BLOCK_EMPTY)
         {
-            grid_array[y - 1][x - 1] == BLOCK_VISITED;
+            if (mark_location)
+                grid_array[y - 1][x - 1] == BLOCK_VISITED;
             return true;
         }
         return false;
     }
 
-    bool is_up_right_empty(std::uint8_t x, std::uint8_t y)
+    bool is_up_right_empty(std::uint8_t x, std::uint8_t y, bool mark_location)
     {
         if (y == 0 or x == GRID_WIDTH - 1)
             return false;
         if (grid_array[y - 1][x + 1] == BLOCK_EMPTY)
         {
-            grid_array[y - 1][x + 1] == BLOCK_VISITED;
+            if (mark_location)
+                grid_array[y - 1][x + 1] == BLOCK_VISITED;
             return true;
         }
         return false;
     }
 
-    bool is_down_left_empty(std::uint8_t x, std::uint8_t y)
+    bool is_down_left_empty(std::uint8_t x, std::uint8_t y, bool mark_location)
     {
         if (y == GRID_HEIGHT - 1 or x == 0)
             return false;
         if (grid_array[y + 1][x - 1] == BLOCK_EMPTY)
         {
-            grid_array[y + 1][x - 1] == BLOCK_VISITED;
+            if (mark_location)
+                grid_array[y + 1][x - 1] == BLOCK_VISITED;
             return true;
         }
         return false;
     }
 
-    bool is_down_right_empty(std::uint8_t x, std::uint8_t y)
+    bool is_down_right_empty(std::uint8_t x, std::uint8_t y, bool mark_location)
     {
         if (y == GRID_HEIGHT - 1 or x == GRID_WIDTH - 1)
             return false;
         if (grid_array[y + 1][x + 1] == BLOCK_EMPTY)
         {
-            grid_array[y + 1][x + 1] == BLOCK_VISITED;
+            if (mark_location)
+                grid_array[y + 1][x + 1] == BLOCK_VISITED;
             return true;
         }
         return false;
@@ -388,7 +402,7 @@ private:
         std::vector<std::uint8_t> position;
         position.push_back(y);
         position.push_back(x);
-        position_list.push_back(position);
+        this->position_list.push_back(position);
 
         for (std::uint16_t pos = 0; pos < path.length(); pos++)
         {
@@ -403,9 +417,9 @@ private:
             std::vector<std::uint8_t> position;
             position.push_back(y);
             position.push_back(x);
-            position_list.push_back(position);
+            this->position_list.push_back(position);
         }
-        this->cell_count = position_list.size();
+        this->cell_count = this->position_list.size();
         display_path();
         return;
     }
@@ -416,38 +430,62 @@ private:
         std::uint8_t y = cell[0];
         std::uint8_t x = cell[1];
 
-        sf::RectangleShape mapping_marker(sf::Vector2f(PIXEL_WIDTH, PIXEL_WIDTH));
-        mapping_marker.setFillColor(sf::Color::Blue);
+        sf::RectangleShape plotting_marker(sf::Vector2f(PIXEL_WIDTH, PIXEL_WIDTH));
+        plotting_marker.setFillColor(PLOTTING_COLOR);
+        std::uint8_t iteration, count = 0;
+        std::string files;
 
         for (std::uint16_t pos = 0; pos < cell_count; pos++)
         {
-            y = position_list[pos][0];
-            x = position_list[pos][1];
-            sf::Vector2f mapped_pos = sf::Vector2f(x * PIXEL_WIDTH, y * PIXEL_WIDTH);
-            mapping_marker.setPosition(mapped_pos);
-            window->draw(mapping_marker);
+            y = this->position_list[pos][0];
+            x = this->position_list[pos][1];
+            sf::Vector2f plotting_pos = sf::Vector2f(x * PIXEL_WIDTH, y * PIXEL_WIDTH);
+            plotting_marker.setPosition(plotting_pos);
+            window->draw(plotting_marker);
             window->display(); // Update display every iteration
+            iteration++;
+#ifdef GENERATE_GIF
+            if ((iteration == 10) || (pos == cell_count - 1))
+            {
+                std::string file_name = "Images/gif" + std::to_string(count) + ".png";
+                files += file_name + " ";
+                sf::Texture texture;
+                texture.create(window->getSize().x, window->getSize().y);
+                texture.update(*window);
+                if (texture.copyToImage().saveToFile(file_name))
+                    std::cout << "Screenshot Saved as " << file_name << std::endl;
+                count++;
+                iteration = 0;
+            }
+#endif // GENERATE_GIF
         }
 
-        sf::CircleShape bot(sf::CircleShape(PIXEL_WIDTH / 2, 30));
-        sf::Vector2f bot_pos = sf::Vector2f((entry_point[1]) * PIXEL_WIDTH, (entry_point[0]) * PIXEL_WIDTH);
-        bot.setPosition(bot_pos);
-        bot.setFillColor(sf::Color::Green);
-        window->draw(bot);
+        sf::CircleShape start_point_marker(sf::CircleShape(PIXEL_WIDTH / 2, 30));
+        sf::Vector2f start_point_pos = sf::Vector2f((entry_point[1]) * PIXEL_WIDTH, (entry_point[0]) * PIXEL_WIDTH);
+        start_point_marker.setPosition(start_point_pos);
+        start_point_marker.setFillColor(START_POINT_COLOR);
+        window->draw(start_point_marker);
 
-        sf::RectangleShape end_point(sf::Vector2f(PIXEL_WIDTH, PIXEL_WIDTH));
-        sf::Vector2f ep_pos = sf::Vector2f((exit_point[1]) * PIXEL_WIDTH, (exit_point[0]) * PIXEL_WIDTH);
-        end_point.setPosition(ep_pos);
-        end_point.setFillColor(sf::Color::Red);
-        window->draw(end_point);
+        sf::RectangleShape end_point_marker(sf::Vector2f(PIXEL_WIDTH, PIXEL_WIDTH));
+        sf::Vector2f end_point_pos = sf::Vector2f((exit_point[1]) * PIXEL_WIDTH, (exit_point[0]) * PIXEL_WIDTH);
+        end_point_marker.setPosition(end_point_pos);
+        end_point_marker.setFillColor(END_POINT_COLOR);
+        window->draw(end_point_marker);
         window->display(); // Update display every iteration
 
-        std::string file_name = "Images/" + this->search_type + ".png";
+        std::string file_name = "Images/" + this->search_type + "Start" + std::to_string(start_pos[0]) + "," + std::to_string(start_pos[1]) + "End" + std::to_string(end_pos[0]) + "," + std::to_string(end_pos[1]) + ".png";
         sf::Texture texture;
         texture.create(window->getSize().x, window->getSize().y);
         texture.update(*window);
         if (texture.copyToImage().saveToFile(file_name))
             std::cout << "Screenshot Saved as " << file_name << std::endl;
+
+#ifdef GENERATE_GIF
+        std::string command = "convert -delay 10 -loop 0 " + files + " Images/gif.gif ";
+        std::cout << command + "\n";
+        system(command.c_str());
+        system("rm Images/gif*.png");
+#endif // GENERATE_GIF
     }
 
     /* -------------------------------------------------------------------------- */
@@ -456,8 +494,7 @@ private:
 
     /* ------------------------- BREADTH - FIRST SEARCH ------------------------- */
 
-    void
-    bfs_search(sf::RenderWindow *display_window, bool show_search_animation)
+    void bfs_search(sf::RenderWindow *display_window, bool show_search_animation)
     {
         this->window = display_window;
         std::queue<std::uint8_t> x_que, y_que;
@@ -471,8 +508,11 @@ private:
         grid_array[start_pos[0]][start_pos[1]] = BLOCK_VISITED;
 
         sf::RectangleShape mapping_marker(sf::Vector2f(PIXEL_WIDTH, PIXEL_WIDTH));
+        mapping_marker.setFillColor(MAPPING_COLOR);
 
-        uint8_t iterations = 0;
+        std::uint8_t iterations = 0;
+        std::uint8_t count = 1;
+        std::string files;
 
         while (true && (!x_que.empty()))
         {
@@ -486,7 +526,6 @@ private:
 
             sf::Vector2f mapped_pos = sf::Vector2f(x * PIXEL_WIDTH, y * PIXEL_WIDTH);
             mapping_marker.setPosition(mapped_pos);
-            mapping_marker.setFillColor(sf::Color::Yellow);
             window->draw(mapping_marker);
 
             if (show_search_animation)
@@ -494,6 +533,16 @@ private:
                 {
                     window->display(); // Update display every iteration
                     iterations = 0;
+#ifdef GENERATE_GIF
+                    std::string file_name = "Images/bfs" + std::to_string(count) + ".png";
+                    files += file_name + " ";
+                    sf::Texture texture;
+                    texture.create(window->getSize().x, window->getSize().y);
+                    texture.update(*window);
+                    if (texture.copyToImage().saveToFile(file_name))
+                        std::cout << "Screenshot Saved as " << file_name << std::endl;
+                    count++;
+#endif // GENERATE_GIF
                 }
                 else
                     iterations++;
@@ -505,25 +554,25 @@ private:
                 break;
             }
 
-            if (is_right_empty(x, y))
+            if (is_right_empty(x, y, true))
             {
                 x_que.push(x + 1);
                 y_que.push(y);
                 move_que.push(path + 'R');
             }
-            if (is_down_empty(x, y))
+            if (is_down_empty(x, y, true))
             {
                 x_que.push(x);
                 y_que.push(y + 1);
                 move_que.push(path + 'D');
             }
-            if (is_left_empty(x, y))
+            if (is_left_empty(x, y, true))
             {
                 x_que.push(x - 1);
                 y_que.push(y);
                 move_que.push(path + 'L');
             }
-            if (is_up_empty(x, y))
+            if (is_up_empty(x, y, true))
             {
                 x_que.push(x);
                 y_que.push(y - 1);
@@ -535,9 +584,16 @@ private:
         {
             std::cout << "Search Complete: " << move_que.back() << std::endl;
             itemize_path(move_que.back());
+#ifdef GENERATE_GIF
+            std::string file_search = "Images/bfs*.png";
+            std::string command = "convert -delay 10 -loop 0 " + files + " Images/gif.gif " + " Images/bfs.gif ";
+            std::cout << command + "\n";
+            system(command.c_str());
+#endif // GENERATE_GIF
         }
         else
             std::cout << "Search Failed!" << std::endl;
+        system("rm Images/bfs*.png Images/gif.gif");
         return;
     }
 
@@ -557,7 +613,11 @@ private:
         grid_array[start_pos[0]][start_pos[1]] = BLOCK_VISITED;
 
         sf::RectangleShape mapping_marker(sf::Vector2f(PIXEL_WIDTH, PIXEL_WIDTH));
-        uint8_t iterations = 0;
+        mapping_marker.setFillColor(MAPPING_COLOR);
+
+        std::uint8_t iterations = 0;
+        std::uint8_t count = 1;
+        std::string files;
 
         while (!x_stack.empty())
         {
@@ -571,7 +631,6 @@ private:
 
             sf::Vector2f mapped_pos = sf::Vector2f(x * PIXEL_WIDTH, y * PIXEL_WIDTH);
             mapping_marker.setPosition(mapped_pos);
-            mapping_marker.setFillColor(sf::Color::Yellow);
             window->draw(mapping_marker);
 
             if (show_search_animation)
@@ -579,6 +638,16 @@ private:
                 {
                     window->display(); // Update display every iteration
                     iterations = 0;
+#ifdef GENERATE_GIF
+                    std::string file_name = "Images/dfs" + std::to_string(count) + ".png";
+                    files += file_name + " ";
+                    sf::Texture texture;
+                    texture.create(window->getSize().x, window->getSize().y);
+                    texture.update(*window);
+                    if (texture.copyToImage().saveToFile(file_name))
+                        std::cout << "Screenshot Saved as " << file_name << std::endl;
+                    count++;
+#endif // GENERATE_GIF
                 }
                 else
                     iterations++;
@@ -590,25 +659,25 @@ private:
                 break;
             }
 
-            if (is_up_empty(x, y))
+            if (is_up_empty(x, y, true))
             {
                 x_stack.push_back(x);
                 y_stack.push_back(y - 1);
                 move_stack.push_back(path + 'U');
             }
-            if (is_left_empty(x, y))
+            if (is_left_empty(x, y, true))
             {
                 x_stack.push_back(x - 1);
                 y_stack.push_back(y);
                 move_stack.push_back(path + 'L');
             }
-            if (is_down_empty(x, y))
+            if (is_down_empty(x, y, true))
             {
                 x_stack.push_back(x);
                 y_stack.push_back(y + 1);
                 move_stack.push_back(path + 'D');
             }
-            if (is_right_empty(x, y))
+            if (is_right_empty(x, y, true))
             {
                 x_stack.push_back(x + 1);
                 y_stack.push_back(y);
@@ -621,9 +690,16 @@ private:
             std::cout << "Search Complete: " << move_stack.back() << std::endl;
             std::cout << "Path Length: " << std::to_string(move_stack.back().length()) << "\n";
             itemize_path(move_stack.back());
+#ifdef GENERATE_GIF
+            std::string file_search = "Images/dfs*.png";
+            std::string command = "convert -delay 10 -loop 0 " + files + " Images/gif.gif " + " Images/dfs.gif ";
+            std::cout << command + "\n";
+            system(command.c_str());
+#endif // GENERATE_GIF
         }
         else
             std::cout << "Search Failed!" << std::endl;
+        system("rm Images/dfs*.png Images/gif.gif");
         return;
     }
 
@@ -648,147 +724,163 @@ private:
         grid_array_data[start_pos[0]][start_pos[1]][2] = 0;
 
         sf::RectangleShape mapping_marker(sf::Vector2f(PIXEL_WIDTH, PIXEL_WIDTH));
+        mapping_marker.setFillColor(MAPPING_COLOR);
+
         std::uint8_t iterations = 0;
+        std::uint8_t count = 1;
+        std::string files;
 
         while (!x_stack.empty())
         {
             std::uint8_t x = x_stack.front();
             std::uint8_t y = y_stack.front();
             std::uint16_t distance = grid_array_data[y][x][2];
-            grid_array[y][x] = BLOCK_VISITED;
 
             x_stack.pop();
             y_stack.pop();
+            if (grid_array[y][x] == BLOCK_EMPTY)
+            {
+                grid_array[y][x] = BLOCK_VISITED;
+                sf::Vector2f mapped_pos = sf::Vector2f(x * PIXEL_WIDTH, y * PIXEL_WIDTH);
+                mapping_marker.setPosition(mapped_pos);
+                window->draw(mapping_marker);
 
-            sf::Vector2f mapped_pos = sf::Vector2f(x * PIXEL_WIDTH, y * PIXEL_WIDTH);
-            mapping_marker.setPosition(mapped_pos);
-            mapping_marker.setFillColor(sf::Color::Yellow);
-            window->draw(mapping_marker);
-            if (show_search_animation)
-                if (iterations == UINT8_MAX)
-                {
-                    window->display(); // Update display every iteration
-                    iterations = 0;
-                }
-                else
-                    iterations++;
+                if (show_search_animation)
+                    if (iterations == UINT8_MAX)
+                    {
+                        window->display(); // Update display every iteration
+                        iterations = 0;
+#ifdef GENERATE_GIF
+                        std::string file_name = "Images/dij" + std::to_string(count) + ".png";
+                        files += file_name + " ";
+                        sf::Texture texture;
+                        texture.create(window->getSize().x, window->getSize().y);
+                        texture.update(*window);
+                        if (texture.copyToImage().saveToFile(file_name))
+                            std::cout << "Screenshot Saved as " << file_name << std::endl;
+                        count++;
+#endif // GENERATE_GIF
+                    }
+                    else
+                        iterations++;
 
-            if ((y == end_pos[0]) && (x == end_pos[1]))
-            {
-                path_found = true;
-                break;
-            }
+                if ((y == end_pos[0]) && (x == end_pos[1]))
+                {
+                    path_found = true;
+                    break;
+                }
 
-            if (is_down_empty(x, y))
-            {
-                std::uint8_t ny, nx;
-                ny = y + 1;
-                nx = x;
-                x_stack.push(nx);
-                y_stack.push(ny);
-                if (grid_array_data[ny][nx][2] > distance)
+                if (is_down_empty(x, y, false))
                 {
-                    grid_array_data[ny][nx][0] = y;
-                    grid_array_data[ny][nx][1] = x;
-                    grid_array_data[ny][nx][2] = distance + 1;
+                    std::uint8_t ny, nx;
+                    ny = y + 1;
+                    nx = x;
+                    x_stack.push(nx);
+                    y_stack.push(ny);
+                    if (grid_array_data[ny][nx][2] > distance + 1)
+                    {
+                        grid_array_data[ny][nx][0] = y;
+                        grid_array_data[ny][nx][1] = x;
+                        grid_array_data[ny][nx][2] = distance + 1;
+                    }
                 }
-            }
-            if (is_down_left_empty(x, y))
-            {
-                std::uint8_t ny, nx;
-                ny = y + 1;
-                nx = x - 1;
-                x_stack.push(nx);
-                y_stack.push(ny);
-                if (grid_array_data[ny][nx][2] > distance)
+                if (is_down_left_empty(x, y, false))
                 {
-                    grid_array_data[ny][nx][0] = y;
-                    grid_array_data[ny][nx][1] = x;
-                    grid_array_data[ny][nx][2] = distance + 1;
+                    std::uint8_t ny, nx;
+                    ny = y + 1;
+                    nx = x - 1;
+                    x_stack.push(nx);
+                    y_stack.push(ny);
+                    if (grid_array_data[ny][nx][2] > distance + 1)
+                    {
+                        grid_array_data[ny][nx][0] = y;
+                        grid_array_data[ny][nx][1] = x;
+                        grid_array_data[ny][nx][2] = distance + 1;
+                    }
                 }
-            }
-            if (is_left_empty(x, y))
-            {
-                std::uint8_t ny, nx;
-                ny = y;
-                nx = x - 1;
-                x_stack.push(nx);
-                y_stack.push(ny);
-                if (grid_array_data[ny][nx][2] > distance)
+                if (is_left_empty(x, y, false))
                 {
-                    grid_array_data[ny][nx][0] = y;
-                    grid_array_data[ny][nx][1] = x;
-                    grid_array_data[ny][nx][2] = distance + 1;
+                    std::uint8_t ny, nx;
+                    ny = y;
+                    nx = x - 1;
+                    x_stack.push(nx);
+                    y_stack.push(ny);
+                    if (grid_array_data[ny][nx][2] > distance + 1)
+                    {
+                        grid_array_data[ny][nx][0] = y;
+                        grid_array_data[ny][nx][1] = x;
+                        grid_array_data[ny][nx][2] = distance + 1;
+                    }
                 }
-            }
-            if (is_up_left_empty(x, y))
-            {
-                std::uint8_t ny, nx;
-                ny = y - 1;
-                nx = x - 1;
-                x_stack.push(nx);
-                y_stack.push(ny);
-                if (grid_array_data[ny][nx][2] > distance)
+                if (is_up_left_empty(x, y, false))
                 {
-                    grid_array_data[ny][nx][0] = y;
-                    grid_array_data[ny][nx][1] = x;
-                    grid_array_data[ny][nx][2] = distance + 1;
+                    std::uint8_t ny, nx;
+                    ny = y - 1;
+                    nx = x - 1;
+                    x_stack.push(nx);
+                    y_stack.push(ny);
+                    if (grid_array_data[ny][nx][2] > distance + 1)
+                    {
+                        grid_array_data[ny][nx][0] = y;
+                        grid_array_data[ny][nx][1] = x;
+                        grid_array_data[ny][nx][2] = distance + 1;
+                    }
                 }
-            }
-            if (is_up_empty(x, y))
-            {
-                std::uint8_t ny, nx;
-                ny = y - 1;
-                nx = x;
-                x_stack.push(nx);
-                y_stack.push(ny);
-                if (grid_array_data[ny][nx][2] > distance)
+                if (is_up_empty(x, y, false))
                 {
-                    grid_array_data[ny][nx][0] = y;
-                    grid_array_data[ny][nx][1] = x;
-                    grid_array_data[ny][nx][2] = distance + 1;
+                    std::uint8_t ny, nx;
+                    ny = y - 1;
+                    nx = x;
+                    x_stack.push(nx);
+                    y_stack.push(ny);
+                    if (grid_array_data[ny][nx][2] > distance + 1)
+                    {
+                        grid_array_data[ny][nx][0] = y;
+                        grid_array_data[ny][nx][1] = x;
+                        grid_array_data[ny][nx][2] = distance + 1;
+                    }
                 }
-            }
-            if (is_up_right_empty(x, y))
-            {
-                std::uint8_t ny, nx;
-                ny = y - 1;
-                nx = x + 1;
-                x_stack.push(nx);
-                y_stack.push(ny);
-                if (grid_array_data[ny][nx][2] > distance)
+                if (is_up_right_empty(x, y, false))
                 {
-                    grid_array_data[ny][nx][0] = y;
-                    grid_array_data[ny][nx][1] = x;
-                    grid_array_data[ny][nx][2] = distance + 1;
+                    std::uint8_t ny, nx;
+                    ny = y - 1;
+                    nx = x + 1;
+                    x_stack.push(nx);
+                    y_stack.push(ny);
+                    if (grid_array_data[ny][nx][2] > distance + 1)
+                    {
+                        grid_array_data[ny][nx][0] = y;
+                        grid_array_data[ny][nx][1] = x;
+                        grid_array_data[ny][nx][2] = distance + 1;
+                    }
                 }
-            }
-            if (is_right_empty(x, y))
-            {
-                std::uint8_t ny, nx;
-                ny = y;
-                nx = x + 1;
-                x_stack.push(nx);
-                y_stack.push(ny);
-                if (grid_array_data[ny][nx][2] > distance)
+                if (is_right_empty(x, y, false))
                 {
-                    grid_array_data[ny][nx][0] = y;
-                    grid_array_data[ny][nx][1] = x;
-                    grid_array_data[ny][nx][2] = distance + 1;
+                    std::uint8_t ny, nx;
+                    ny = y;
+                    nx = x + 1;
+                    x_stack.push(nx);
+                    y_stack.push(ny);
+                    if (grid_array_data[ny][nx][2] > distance + 1)
+                    {
+                        grid_array_data[ny][nx][0] = y;
+                        grid_array_data[ny][nx][1] = x;
+                        grid_array_data[ny][nx][2] = distance + 1;
+                    }
                 }
-            }
-            if (is_down_right_empty(x, y))
-            {
-                std::uint8_t ny, nx;
-                ny = y + 1;
-                nx = x + 1;
-                x_stack.push(nx);
-                y_stack.push(ny);
-                if (grid_array_data[ny][nx][2] > distance)
+                if (is_down_right_empty(x, y, false))
                 {
-                    grid_array_data[ny][nx][0] = y;
-                    grid_array_data[ny][nx][1] = x;
-                    grid_array_data[ny][nx][2] = distance + 1;
+                    std::uint8_t ny, nx;
+                    ny = y + 1;
+                    nx = x + 1;
+                    x_stack.push(nx);
+                    y_stack.push(ny);
+                    if (grid_array_data[ny][nx][2] > distance + 1)
+                    {
+                        grid_array_data[ny][nx][0] = y;
+                        grid_array_data[ny][nx][1] = x;
+                        grid_array_data[ny][nx][2] = distance + 1;
+                    }
                 }
             }
         }
@@ -796,12 +888,14 @@ private:
         if (path_found)
         {
             std::uint8_t y, x;
-            y = exit_point[0];
-            x = exit_point[1];
+            y = end_pos[0];
+            x = end_pos[1];
+
             std::vector<std::uint8_t> pos;
             pos.push_back(y);
             pos.push_back(x);
-            position_list.push_back(pos);
+            this->position_list.push_back(pos);
+
             while (true)
             {
                 std::uint8_t ny, nx;
@@ -812,29 +906,37 @@ private:
                 std::vector<std::uint8_t> pos;
                 pos.push_back(y);
                 pos.push_back(x);
-                position_list.push_back(pos);
-                if ((y == 0) && (x == 0))
+                this->position_list.push_back(pos);
+
+                if ((y == start_pos[0]) && (x == start_pos[1]))
                 {
                     std::vector<std::vector<std::uint8_t>> inverted_list;
-                    while (!position_list.empty())
+                    while (!this->position_list.empty())
                     {
-                        inverted_list.push_back(position_list.back());
-                        position_list.pop_back();
+                        inverted_list.push_back(this->position_list.back());
+                        this->position_list.pop_back();
                     }
-                    position_list.clear();
+                    this->position_list.clear();
                     for (size_t i = 0; i < inverted_list.size(); i++)
-                        position_list.push_back(inverted_list[i]);
+                        this->position_list.push_back(inverted_list[i]);
                     inverted_list.clear();
                     break;
                 }
             }
 
-            std::cout << "Path Length: " << std::to_string(position_list.size()) << "\n";
-            this->cell_count = position_list.size();
+            std::cout << "Path Length: " << std::to_string(this->position_list.size()) << "\n";
+            this->cell_count = this->position_list.size();
             display_path();
+#ifdef GENERATE_GIF
+            std::string file_search = "Images/dij*.png";
+            std::string command = "convert -delay 10 -loop 0 " + files + " Images/gif.gif " + " Images/dij.gif ";
+            std::cout << command + "\n";
+            system(command.c_str());
+#endif // GENERATE_GIF
         }
         else
             std::cout << "Search Failed!" << std::endl;
+        system("rm Images/dij*.png Images/gif.gif");
         return;
     }
 
@@ -863,7 +965,7 @@ public:
     void
     initiate_search(std::string search_type, sf::RenderWindow *window, bool show_search_animation)
     {
-        position_list.clear();
+        this->position_list.clear();
         if (search_type == BFS_SEARCH)
         {
             this->search_type = BFS_SEARCH;
@@ -908,18 +1010,23 @@ int main(int argc, char *argv[])
 
     // Depth-First Search
     sf::RenderWindow *search2 = grid->clear_grid(false, false, DFS_SEARCH);
-    plan_path->initiate_search(DFS_SEARCH, search2, false);
+    plan_path->initiate_search(DFS_SEARCH, search2, true);
 
     // Dijkstra Search
     sf::RenderWindow *search3 = grid->clear_grid(false, false, DIJKSTRA_SEARCH);
-    plan_path->initiate_search(DIJKSTRA_SEARCH, search3, false);
+    plan_path->initiate_search(DIJKSTRA_SEARCH, search3, true);
 
-    while (search1->isOpen())
-    {
-        sf::Event event;
-        while (search1->pollEvent(event))
-            if (event.type == sf::Event::Closed) // "close requested" event: we close the window
-                search1->close();
-    }
+    std::string file_search = "Images/*Start" + std::to_string(entry_point[0]) + "," + std::to_string(entry_point[1]) + "End" + std::to_string(exit_point[0]) + "," + std::to_string(exit_point[1]) + ".png";
+    std::string command = "convert " + file_search + " +append Images/CombinedStart" + std::to_string(entry_point[0]) + "," + std::to_string(entry_point[1]) + "End" + std::to_string(exit_point[0]) + "," + std::to_string(exit_point[1]) + ".png ";
+    std::cout << command + "\n";
+    system(command.c_str());
+
+    // while (search1->isOpen())
+    // {
+    //     sf::Event event;
+    //     while (search1->pollEvent(event))
+    //         if (event.type == sf::Event::Closed) // "close requested" event: we close the window
+    //             search1->close();
+    // }
     return EXIT_SUCCESS;
 }
