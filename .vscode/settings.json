@@ -1,3 +1,31 @@
 {
-  "python.analysis.typeCheckingMode": "basic"
+  "python.analysis.typeCheckingMode": "basic",
+  "cSpell.enableFiletypes": [
+    "bibtex",
+    "bibtex-style",
+    "cmake",
+    "cmake-cache",
+    "code-text-binary",
+    "cpp_embedded_latex",
+    "csv",
+    "csv (semicolon)",
+    "csv (whitespace)",
+    "cuda-cpp",
+    "dockerfile",
+    "dynamic csv",
+    "excel",
+    "git-rebase",
+    "gitignore",
+    "http",
+    "ignore",
+    "log",
+    "lua",
+    "makefile",
+    "markdown-math",
+    "objective-c",
+    "objective-cpp",
+    "pip-requirements"
+  ],
+  "cSpell.language": "en,en-GB,en-US,lorem",
+  "C_Cpp.dimInactiveRegions": true
 }

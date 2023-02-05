@@ -5,6 +5,8 @@
     - [ROS Noetic](#ros-noetic)
     - [OBS Studio](#obs-studio)
     - [Kdenlive](#kdenlive)
+- [Code Dependencies](#code-dependencies)
+    - [Simple and Fast Multimedia Library](#simple-and-fast-multimedia-library)
 
 <!-- /TOC -->
 
@@ -108,3 +110,19 @@ Kdenlive is used to edit the video recorded via OBS for submission.
 ```shell
 sudo snap install kdenlive
 ```
+
+# Code Dependencies
+
+## Simple and Fast Multimedia Library
+
+This graphical interface is build using [Simple and Fast Multimedia Library (SFML)](https://www.sfml-dev.org/index.php) Library. It is a well designed and efficient library with required rudimentory functions needed to build simple graphical displays.
+
+To install the library, paste the following code in terminal
+
+```shell
+sudo apt-get install libsfml-dev
+```
+
+Now, there is a huge and boring process needed to make sure that your file is linked with SFML Library. So I have made a *MakeFile* to make the task simple.
+
+If you want to try out things for your own. Here is the [link](https://www.sfml-dev.org/tutorials/2.5/start-linux.php).

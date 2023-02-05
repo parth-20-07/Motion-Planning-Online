@@ -5,6 +5,7 @@
 - [Introduction](#introduction)
 - [How to run the Assignments](#how-to-run-the-assignments)
     - [Task 0: Setup Basic Tools](#task-0-setup-basic-tools)
+    - [Assignment 0: Setup Environment](#assignment-0-setup-environment)
     - [Assignment 1: Setup Environment](#assignment-1-setup-environment)
 - [Design Details](#design-details)
 - [License](#license)
@@ -29,9 +30,13 @@ Each Assignment shown here has a detailed explaination in its own directory. Ple
 
 Click the [Link](/Docs/) to see the complete guide on how to setup the essential tools for the project.
 
+## Assignment 0: Setup Environment
+
+The aim of the [Assignment 0](/HW0%20-%20Turtles/) is to setup the environment and try a basic run through programming. Here we try to develop a rudimentary and random obstacle field, tryout turtle sim in python and initiate a *Victor Sierra* Search pattern to find lost objects.
+
 ## Assignment 1: Setup Environment
 
-The aim of the [Assignment 1](/HW0%20-%20Turtles/) is to setup the environement and try a basic run through programming. Here we try to develop a rudimentary and random obstacle field, tryout turtle sim in python and initiate a *Victor Sierra* Search pattern to find lost objects.
+The aim of the [Assignment 1](/HW1%20-%20Flatland/) is to implement Breadth First Search, Depth First Search and Dijkstra Search to find a path between Start Point and Goal Point.
 
 # Design Details
 
