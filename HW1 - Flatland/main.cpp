@@ -50,6 +50,7 @@
 /**
  * @brief Types of Searches
  */
+#define RANDOM_SEARCH "Random Search"
 #define BFS_SEARCH "BFS Search"
 #define DFS_SEARCH "DFS Search"
 #define DIJKSTRA_SEARCH "Dijkstra Search"
@@ -120,6 +121,7 @@ private:
     bool is_down_right_empty(std::uint8_t x, std::uint8_t y, bool mark_location);
     std::uint16_t itemize_path(std::string path);
     void display_path(void);
+    std::uint16_t random_search(sf::RenderWindow *display_window, bool show_search_animation);
     std::uint16_t bfs_search(sf::RenderWindow *display_window, bool show_search_animation);
     std::uint16_t dfs_search(sf::RenderWindow *display_window, bool show_search_animation);
     std::uint16_t dijkstra_search(sf::RenderWindow *display_windows, bool show_search_animation);
@@ -164,6 +166,10 @@ int main(int argc, char *argv[])
 
         // Initialize Path Planner
         StartSearch *plan_path = new StartSearch(entry_point[0], entry_point[1], exit_point[0], exit_point[1]);
+
+        // Random Search
+        sf::RenderWindow *search0 = grid->clear_grid(false, false, RANDOM_SEARCH);
+        std::uint16_t random_steps = plan_path->initiate_search(RANDOM_SEARCH, search0, true);
 
         // Breadth-First Search
         sf::RenderWindow *search1 = grid->clear_grid(false, false, BFS_SEARCH);
@@ -720,6 +726,132 @@ void StartSearch::display_path(void)
 /*                           PATH PLANNING FUNCTIONS                          */
 /* -------------------------------------------------------------------------- */
 
+/* ------------------------------ RANDOM SEARCH ----------------------------- */
+
+/**
+ * @brief Perform Random Search
+ *
+ * @param display_window Pointer to the display window
+ * @param show_search_animation True -> Show Search Animation
+ *                                  False -> Hide Search Animation
+ * @return std::uint16_t Number of Steps
+ */
+std::uint16_t StartSearch::random_search(sf::RenderWindow *display_window, bool show_search_animation)
+{
+    this->window = display_window; // Update the pointer to the window
+
+    // Initialize LIFO Stack to store Neighbour Information
+    std::vector<std::uint8_t> x_stack, y_stack;
+    std::vector<std::string> move_stack;
+
+    bool path_found = false; // Boolean to determine whether the path is found or not
+
+    // Push the Start Node to Stack
+    y_stack.push_back(start_pos[0]);
+    x_stack.push_back(start_pos[1]);
+    move_stack.push_back("");
+
+    grid_array[start_pos[0]][start_pos[1]] = BLOCK_VISITED; // Mark the Start as visited
+
+    // Setup marker to mark the visited blocks
+    sf::RectangleShape mapping_marker(sf::Vector2f(PIXEL_WIDTH, PIXEL_WIDTH));
+    mapping_marker.setFillColor(MAPPING_COLOR);
+
+    std::uint8_t count = 1; // To Name the Image Uniquely
+    std::string files;
+
+    // Pop the last element from the Stack
+    std::uint8_t x = start_pos[1];
+    std::uint8_t y = start_pos[0];
+    std::string path;
+
+    while (!x_stack.empty())
+    {
+        x_stack.clear();
+        y_stack.clear();
+        move_stack.clear();
+
+        // Mark the Current node as visited
+        sf::Vector2f mapped_pos = sf::Vector2f(x * PIXEL_WIDTH, y * PIXEL_WIDTH);
+        mapping_marker.setPosition(mapped_pos);
+        window->draw(mapping_marker);
+
+        if (show_search_animation) // Update the Grid for Visualization
+            window->display();     // Update display every iteration
+
+#ifdef GENERATE_GIF
+        std::string file_name = "Images/rand" + std::to_string(count) + ".png";
+        files += file_name + " ";
+        sf::Texture texture;
+        texture.create(window->getSize().x, window->getSize().y);
+        texture.update(*window);
+        if (texture.copyToImage().saveToFile(file_name))
+            std::cout << "Screenshot Saved as " << file_name << std::endl;
+        count++;
+#endif // GENERATE_GIF
+
+        if ((y == end_pos[0]) && (x == end_pos[1])) // Break if end point reached
+        {
+            path_found = true;
+            move_stack.push_back(path);
+            break;
+        }
+
+        // Look for surrounding Neighbors, if empty then add them to stack and mark them as visited
+        if (is_up_empty(x, y, true))
+        {
+            x_stack.push_back(x);
+            y_stack.push_back(y - 1);
+            move_stack.push_back(path + 'U');
+        }
+        if (is_left_empty(x, y, true))
+        {
+            x_stack.push_back(x - 1);
+            y_stack.push_back(y);
+            move_stack.push_back(path + 'L');
+        }
+        if (is_down_empty(x, y, true))
+        {
+            x_stack.push_back(x);
+            y_stack.push_back(y + 1);
+            move_stack.push_back(path + 'D');
+        }
+        if (is_right_empty(x, y, true))
+        {
+            x_stack.push_back(x + 1);
+            y_stack.push_back(y);
+            move_stack.push_back(path + 'R');
+        }
+        if (!x_stack.empty())
+        {
+            std::uint8_t pos = rand() % x_stack.size();
+            x = x_stack[pos];
+            y = y_stack[pos];
+            path = move_stack[pos];
+        }
+        else
+            break;
+    }
+
+    std::uint16_t steps = 0;
+    if (path_found)
+    {
+        // std::cout << "Search Complete: " << move_stack.back() << std::endl;
+        steps = itemize_path(move_stack.back()); // Break the Path Strings into coordinated and display them
+
+#ifdef GENERATE_GIF
+        std::string file_search = "Images/rand*.png";
+        std::string command = "convert -delay 10 -loop 0 " + files + " Images/gif.gif " + " Images/random.gif ";
+        std::cout << command + "\n";
+        system(command.c_str());
+        system("rm Images/rand*.png Images/gif.gif");
+#endif // GENERATE_GIF
+    }
+    else
+        std::cout << "Search Failed!" << std::endl;
+    return steps;
+}
+
 /* ------------------------- BREADTH - FIRST SEARCH ------------------------- */
 
 /**
@@ -1263,7 +1395,12 @@ StartSearch::StartSearch(std::uint8_t start_position_y, std::uint8_t start_posit
 std::uint16_t StartSearch::initiate_search(std::string search_type, sf::RenderWindow *window, bool show_search_animation)
 {
     this->position_list.clear();
-    if (search_type == BFS_SEARCH)
+    if (search_type == RANDOM_SEARCH)
+    {
+        this->search_type = RANDOM_SEARCH;
+        return random_search(window, show_search_animation);
+    }
+    else if (search_type == BFS_SEARCH)
     {
         this->search_type = BFS_SEARCH;
         return bfs_search(window, show_search_animation);
