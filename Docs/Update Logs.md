@@ -8,3 +8,4 @@
 - January 27, 2023: Add BFS Search in HW1 in [HW1 - Flatland](/HW1%20-%20Flatland/).
 - January 31, 2023: Add DFS Search in HW1 in [HW1 - Flatland](/HW1%20-%20Flatland/).
 - February 3, 2023: Add Dijkstra Search and Documentation in HW1 in [HW1 - Flatland](/HW1%20-%20Flatland/).
+- February 10, 2023: Add Project Requirement Files for HW2 in [HW2-Valet](/HW2%20-%20Valet/).

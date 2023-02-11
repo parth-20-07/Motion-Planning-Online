@@ -6,7 +6,8 @@
 - [How to run the Assignments](#how-to-run-the-assignments)
     - [Task 0: Setup Basic Tools](#task-0-setup-basic-tools)
     - [Assignment 0: Setup Environment](#assignment-0-setup-environment)
-    - [Assignment 1: Setup Environment](#assignment-1-setup-environment)
+    - [Assignment 1: Flatland](#assignment-1-flatland)
+    - [Assignment 2: Valet](#assignment-2-valet)
 - [Design Details](#design-details)
 - [License](#license)
 - [Update Logs](#update-logs)
@@ -34,9 +35,13 @@ Click the [Link](/Docs/) to see the complete guide on how to setup the essential
 
 The aim of the [Assignment 0](/HW0%20-%20Turtles/) is to setup the environment and try a basic run through programming. Here we try to develop a rudimentary and random obstacle field, tryout turtle sim in python and initiate a *Victor Sierra* Search pattern to find lost objects.
 
-## Assignment 1: Setup Environment
+## Assignment 1: Flatland
 
 The aim of the [Assignment 1](/HW1%20-%20Flatland/) is to implement Breadth First Search, Depth First Search and Dijkstra Search to find a path between Start Point and Goal Point.
+
+## Assignment 2: Valet
+
+The aim of the [Assignment 2](/HW2%20-%20Valet/) is to implement search and path planning algorithms to park a car with non-holonomic constraints.
 
 # Design Details
 
