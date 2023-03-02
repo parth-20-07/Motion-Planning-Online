@@ -3,8 +3,8 @@
 <!-- TOC -->
 
 - [Introduction](#introduction)
-- [How to run the Assignments](#how-to-run-the-assignments)
-    - [Task 0: Setup Basic Tools](#task-0-setup-basic-tools)
+- [Setup Basic Tools](#setup-basic-tools)
+- [Assignments](#assignments)
     - [Assignment 0: Setup Environment](#assignment-0-setup-environment)
     - [Assignment 1: Flatland](#assignment-1-flatland)
     - [Assignment 2: Valet](#assignment-2-valet)
@@ -26,23 +26,24 @@ Each Assignment shown here has a detailed explaination in its own directory. Ple
 
 🗒*Note: But if you understand the codes enough and are smart enough, it will be super simple to port it on the system that you like. I understand coding enough to build all these things but still am not too expert to build cross-platform products yet!*
 
-# How to run the Assignments
+# Setup Basic Tools
 
-## Task 0: Setup Basic Tools
+Click the [Link](./Docs/Basic%20Setup.md) to see the complete guide on how to setup the essential tools for the project.
 
-Click the [Link](/Docs/) to see the complete guide on how to setup the essential tools for the project.
+
+# Assignments
 
 ## Assignment 0: Setup Environment
 
-The aim of the [Assignment 0](/HW0%20-%20Turtles/) is to setup the environment and try a basic run through programming. Here we try to develop a rudimentary and random obstacle field, tryout turtle sim in python and initiate a *Victor Sierra* Search pattern to find lost objects.
+The aim of the [Assignment 0](./HW0%20-%20Turtles/) is to setup the environment and try a basic run through programming. Here we try to develop a rudimentary and random obstacle field, tryout turtle sim in python and initiate a *Victor Sierra* Search pattern to find lost objects.
 
 ## Assignment 1: Flatland
 
-The aim of the [Assignment 1](/HW1%20-%20Flatland/) is to implement Breadth First Search, Depth First Search and Dijkstra Search to find a path between Start Point and Goal Point.
+The aim of the [Assignment 1](./HW1%20-%20Flatland/) is to implement Breadth First Search, Depth First Search and Dijkstra Search to find a path between Start Point and Goal Point.
 
 ## Assignment 2: Valet
 
-The aim of the [Assignment 2](/HW2%20-%20Valet/) is to implement search and path planning algorithms to park a car with non-holonomic constraints.
+The aim of the [Assignment 2](./HW2%20-%20Valet/) is to implement search and path planning algorithms to park a car with non-holonomic constraints.
 
 # Final Project
 Project Topic: [**Multi-Tier UAV Search and Retrieve**](https://github.com/parth-20-07/Multi-Tier-UAV-Search-and-Retrieve)
@@ -81,4 +82,4 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 # Update Logs
 
-All the major updates in the repository can be found in [Update Logs.md](/Docs/Update%20Logs.md).
+All the major updates in the repository can be found in [Update Logs.md](./Docs/Update%20Logs.md).
