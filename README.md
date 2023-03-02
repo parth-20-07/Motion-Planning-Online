@@ -8,6 +8,7 @@
     - [Assignment 0: Setup Environment](#assignment-0-setup-environment)
     - [Assignment 1: Flatland](#assignment-1-flatland)
     - [Assignment 2: Valet](#assignment-2-valet)
+- [Final Project](#final-project)
 - [Design Details](#design-details)
 - [License](#license)
 - [Update Logs](#update-logs)
@@ -42,6 +43,19 @@ The aim of the [Assignment 1](/HW1%20-%20Flatland/) is to implement Breadth Firs
 ## Assignment 2: Valet
 
 The aim of the [Assignment 2](/HW2%20-%20Valet/) is to implement search and path planning algorithms to park a car with non-holonomic constraints.
+
+# Final Project
+Project Topic: [**Multi-Tier UAV Search and Retrieve**](https://github.com/parth-20-07/Multi-Tier-UAV-Search-and-Retrieve)
+
+The project focuses on 3 drones with different abilities:
+- **Planner Drone**: Slow Speed, High Battery Capacity, Moderate Payload Capacity
+- **Search Drone**: High Speed, Low Battery Capacity, Low Payload Capacity
+- **Retrieval Drone**: Pay Speed, Low Battery Capacity, High Payload Capacity
+
+The Combination of three drones are used to perform Search and Retrieve operation.
+1. The Planner Drone achieves high altitude to design a general search algorithm to find lost object.
+2. The Search Drone has high speed and a local obstacle avoidance and path planning algorithm which avoids obstacles that are not possible to map from heights. This drone is used to map the environment while looking for the lost object
+3. The Retrieval Drone get the final coordinates of lost object from Search Drone along with mapping of small obstacle detected by Search Drone. This drone finally goes to the location of lost object and retrieves it.
 
 # Design Details
 
