@@ -49,7 +49,7 @@ The aim of [Assignment 3](https://github.com/parth-20-07/Combinational-And-Sampl
 
 The aim of [Assignment 4](https://github.com/parth-20-07/Gearbox-Disassembly-using-RRT-Algorithm-in-3D-Space) is to design a motion planner to disassemble a mainshaft from SM-465 Transmission Box using RRT Planner in 3D Space without any collisions
 
-# [Final Project]((https://github.com/parth-20-07/Multi-Tier-UAV-Search-and-Retrieve))
+# [Final Project](https://github.com/parth-20-07/Multi-Tier-UAV-Search-and-Retrieve)
 Project Topic: [**Multi-Tier UAV Search and Retrieve**](https://github.com/parth-20-07/Multi-Tier-UAV-Search-and-Retrieve)
 
 The project focuses on 3 drones with different abilities:
