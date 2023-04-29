@@ -2,21 +2,23 @@
 
 <!-- TOC -->
 
-- [IntroductionThe course aims to learn about Motion Planning and Path Planning.](#introductionthe-course-aims-to-learn-about-motion-planning-and-path-planning)
+- [Introduction](#introduction)
 - [Setup Basic Tools](#setup-basic-tools)
 - [Assignments](#assignments)
     - [Assignment 0: Setup Environment](#assignment-0-setup-environment)
     - [Assignment 1: Flatland](#assignment-1-flatland)
     - [Assignment 2: Valet](#assignment-2-valet)
     - [Assignment 3: WildFire](#assignment-3-wildfire)
-    - [Assignment 4](#assignment-4)
+    - [Assignment 4: Transmission](#assignment-4-transmission)
 - [Final Project](#final-project)
 - [Design Details](#design-details)
 - [License](#license)
 
 <!-- /TOC -->
 
-# IntroductionThe course aims to learn about Motion Planning and Path Planning.
+# Introduction
+
+The course aims to learn about Motion Planning and Path Planning.
 
 Each Assignment shown here has a detailed explanation in its directory. Please refer to the individual directories for an in-depth explanation of how the code works.
 
